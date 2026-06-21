@@ -41,9 +41,36 @@ function getReferralData() {
             referrals: [],
             totalEarnings: 0
         };
-        localStorage.setItem("referralData", JSON.stringify(referralData));
+        saveReferralDataStorage(referralData);
     }
     return referralData[currentUser.email];
+}
+
+function saveReferralDataStorage(referralData) {
+    localStorage.setItem("referralData", JSON.stringify(referralData));
+
+    if (!window.AppFirebase) return;
+
+    Object.keys(referralData).forEach(email => {
+        window.AppFirebase.db.collection("referralData").doc(email.toLowerCase()).set({
+            ...referralData[email],
+            email: email.toLowerCase(),
+            updatedAt: window.AppFirebase.serverTimestamp()
+        }, { merge: true }).catch(console.error);
+    });
+}
+
+function watchReferralData() {
+    const currentUser = getCurrentUser();
+    if (!currentUser || !window.AppFirebase) return;
+
+    window.AppFirebase.db.collection("referralData").doc(currentUser.email.toLowerCase()).onSnapshot(doc => {
+        if (!doc.exists) return;
+        const allReferralData = JSON.parse(localStorage.getItem("referralData") || "{}");
+        allReferralData[currentUser.email] = doc.data();
+        localStorage.setItem("referralData", JSON.stringify(allReferralData));
+        initializeReferralData();
+    }, console.error);
 }
 
 // Generate unique referral code based on user
@@ -276,7 +303,7 @@ function addSampleReferral() {
     const currentUser = getCurrentUser();
     const referralDataStorage = JSON.parse(localStorage.getItem("referralData") || "{}");
     referralDataStorage[currentUser.email] = referralData;
-    localStorage.setItem("referralData", JSON.stringify(referralDataStorage));
+    saveReferralDataStorage(referralDataStorage);
 
     updateStats(referralData);
     renderReferrals(referralData.referrals);
@@ -289,4 +316,7 @@ document.querySelector("[data-logout]").addEventListener("click", () => {
 });
 
 // Initialize on page load
-document.addEventListener("DOMContentLoaded", initializeReferralData);
+document.addEventListener("DOMContentLoaded", () => {
+    initializeReferralData();
+    watchReferralData();
+});

@@ -14,6 +14,12 @@ function getSettings(){
 
 function saveSettings(settings){
     localStorage.setItem("adminSettings", JSON.stringify(settings));
+    if (window.AppFirebase) {
+        window.AppFirebase.db.collection("settings").doc("admin").set({
+            ...settings,
+            updatedAt: window.AppFirebase.serverTimestamp()
+        }, { merge: true }).catch(console.error);
+    }
 }
 
 function setText(id, value){
@@ -56,3 +62,7 @@ if (settingsForm) {
 }
 
 renderSettings();
+
+window.addEventListener("appdata:changed", (event) => {
+    if (event.detail.collection === "adminSettings") renderSettings();
+});

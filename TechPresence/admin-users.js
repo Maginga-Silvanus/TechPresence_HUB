@@ -30,6 +30,9 @@ function getUsers() {
 
 function saveUsers(users) {
     localStorage.setItem("users", JSON.stringify(users));
+    if (window.AppData) {
+        window.AppData.saveCollection("users", users).catch(console.error);
+    }
 }
 
 function escapeHtml(text) {
@@ -272,6 +275,12 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
+    renderCharts();
+    renderUsers();
+});
+
+window.addEventListener("appdata:changed", (event) => {
+    if (event.detail.collection !== "users") return;
     renderCharts();
     renderUsers();
 });

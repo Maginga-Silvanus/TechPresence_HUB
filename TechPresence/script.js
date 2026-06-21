@@ -40,6 +40,13 @@ function getTasks(){
     return JSON.parse(localStorage.getItem("tasks") || "[]");
 }
 
+function saveTasks(tasks){
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    if (window.AppData) {
+        window.AppData.saveCollection("tasks", tasks).catch(console.error);
+    }
+}
+
 function getCurrentUser(){
     return JSON.parse(localStorage.getItem("currentUser") || "null");
 }
@@ -181,6 +188,9 @@ function getSubmissions() {
 
 function saveSubmissions(submissions) {
     localStorage.setItem("submissions", JSON.stringify(submissions));
+    if (window.AppData) {
+        window.AppData.saveCollection("submissions", submissions).catch(console.error);
+    }
 }
 
 async function fileToDataUrl(file) {
@@ -274,7 +284,7 @@ if (submissionForm) {
                 document: docData,
                 screenshot: screenshotData,
                 status: 'pending',
-                createdAt: new Date().toLocaleString()
+                createdAt: new Date().toISOString()
             });
 
             saveSubmissions(submissions);
@@ -329,12 +339,20 @@ if (withdrawForm) {
             amount,
             method,
             status: 'pending',
-            createdAt: new Date().toLocaleString()
+            createdAt: new Date().toISOString()
         });
         localStorage.setItem("withdrawals", JSON.stringify(allWithdrawals));
+        if (window.AppData) {
+            window.AppData.saveCollection("withdrawals", allWithdrawals).catch(console.error);
+        }
         withdrawForm.reset();
         alert("Withdrawal request sent!");
         renderUserSubmissions();
     });
 }
+
+window.addEventListener("appdata:changed", (event) => {
+    if (event.detail.collection === "tasks") renderTasks();
+    if (event.detail.collection === "submissions" || event.detail.collection === "withdrawals") renderUserSubmissions();
+});
 }

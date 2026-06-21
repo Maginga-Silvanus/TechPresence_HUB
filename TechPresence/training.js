@@ -34,6 +34,9 @@ function getUserSelections() {
 
 function saveUserSelections(selections) {
     localStorage.setItem("userTrainingSelections", JSON.stringify(selections));
+    if (window.AppData) {
+        window.AppData.saveCollection("userTrainingSelections", selections).catch(console.error);
+    }
 }
 
 function getCurrentUser() {
@@ -250,7 +253,7 @@ function selectSlot(slotId) {
         userEmail: currentUser.email,
         userName: currentUser.name,
         status: "pending",
-        selectedAt: new Date().toLocaleString(),
+        selectedAt: new Date().toISOString(),
         adminResponse: null,
         adminMessage: ""
     };
@@ -367,3 +370,10 @@ setInterval(() => {
     renderUserStatus();
     updateTrainingNotice();
 }, 5000);
+
+window.addEventListener("appdata:changed", (event) => {
+    if (event.detail.collection !== "trainingSlots" && event.detail.collection !== "userTrainingSelections") return;
+    renderSlots();
+    renderUserStatus();
+    updateTrainingNotice();
+});

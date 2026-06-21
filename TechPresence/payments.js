@@ -34,6 +34,9 @@ function getPaymentMethods() {
 
 function savePaymentMethods(methods) {
     localStorage.setItem("paymentMethods", JSON.stringify(methods));
+    if (window.AppData) {
+        window.AppData.saveCollection("paymentMethods", methods).catch(console.error);
+    }
 }
 
 function escapeHtml(value) {
@@ -216,7 +219,7 @@ function luhnCheck(num) {
 }
 
 // Form Submission
-document.getElementById("paymentForm").addEventListener("submit", (e) => {
+document.getElementById("paymentForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -230,23 +233,35 @@ document.getElementById("paymentForm").addEventListener("submit", (e) => {
         return;
     }
 
+    const cardNumber = document.getElementById("cardNumber").value.replace(/\s/g, "");
+    const accountNumber = document.getElementById("accountNumber").value;
     const paymentMethod = {
         id: Date.now().toString(),
         userEmail: currentUser.email,
         fullName: document.getElementById("fullName").value,
-        cardNumber: document.getElementById("cardNumber").value.replace(/\s/g, ""),
-        cardNumberMasked: "•••• •••• •••• " + document.getElementById("cardNumber").value.slice(-4),
-        accountNumber: document.getElementById("accountNumber").value,
-        cvv: document.getElementById("cvv").value,
+        cardNumber,
+        cardLast4: cardNumber.slice(-4),
+        cardNumberMasked: "•••• •••• •••• " + cardNumber.slice(-4),
+        accountNumber,
+        accountLast4: accountNumber.slice(-4),
+        accountMasked: accountNumber.slice(-4).padStart(accountNumber.length, "*"),
         expiry: document.getElementById("expiry").value,
         bankName: document.getElementById("bankName").value,
-        createdAt: new Date().toLocaleString(),
+        createdAt: new Date().toISOString(),
         isDefault: false
     };
 
     const methods = getPaymentMethods();
     methods.push(paymentMethod);
-    savePaymentMethods(methods);
+    try {
+        savePaymentMethods(methods);
+        if (window.AppData) {
+            await window.AppData.upsertItem("paymentMethods", paymentMethod);
+        }
+    } catch (error) {
+        alert("Unable to save bank details online. Please try again.");
+        return;
+    }
 
     // Show success message
     const successMsg = document.getElementById("successMessage");
@@ -310,10 +325,17 @@ function deletePaymentMethod(methodId) {
         let methods = getPaymentMethods();
         methods = methods.filter(m => m.id !== methodId);
         savePaymentMethods(methods);
+        if (window.AppData) {
+            window.AppData.deleteItem("paymentMethods", methodId).catch(console.error);
+        }
         renderSavedCards();
         alert("Bank details deleted successfully");
     }
 }
+
+window.addEventListener("appdata:changed", (event) => {
+    if (event.detail.collection === "paymentMethods") renderSavedCards();
+});
 
 // Initial render
 renderSavedCards();

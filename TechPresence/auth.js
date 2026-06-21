@@ -11,6 +11,9 @@
 
     function saveUsers(users){
         localStorage.setItem('users', JSON.stringify(users));
+        if (window.AppData) {
+            window.AppData.saveCollection('users', users).catch(console.error);
+        }
     }
 
     function getFirebase(){
@@ -33,6 +36,11 @@
     async function saveFirebaseUser(user){
         const fb = getFirebase();
         if (!fb) return;
+
+        if (window.AppData) {
+            await window.AppData.upsertItem('users', user);
+            return;
+        }
 
         await fb.db.collection('users').doc(user.email).set({
             ...user,
@@ -152,6 +160,9 @@
 
     function saveApplications(applications){
         localStorage.setItem('applications', JSON.stringify(applications));
+        if (window.AppData) {
+            window.AppData.saveCollection('applications', applications).catch(console.error);
+        }
     }
 
     function getAdminSettings(){
@@ -365,6 +376,18 @@
             saveFirebaseUser(savedUser).catch(console.error);
         }
 
+        if (window.AppData) {
+            window.AppData.upsertItem('activationPayments', {
+                id: `${user.email}-${Date.now()}`,
+                userEmail: user.email,
+                userName: user.name,
+                phone: cleanPhone,
+                amount: Number(settings.activationFee),
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            }).catch(console.error);
+        }
+
         user.activationPaid = true;
         user.phone = cleanPhone;
         setCurrentUser(user);
@@ -403,7 +426,11 @@
                     saveUsers(users);
                 }
             } catch (error) {
-                alert(error.message || 'Unable to register. Please try again.');
+                if (error.code === 'auth/email-already-in-use') {
+                    alert('This email already has a Firebase account. Please login instead; your online profile will be restored automatically.');
+                } else {
+                    alert(error.message || 'Unable to register. Please try again.');
+                }
                 return;
             }
 
@@ -424,7 +451,24 @@
 
             // admin shortcut - accept exact demo password or any variant containing the core token
             if (email === adminEmail && (password === ADMIN_PASSWORD || password.trim().includes(ADMIN_PASSWORD_CORE))) {
-                setCurrentUser({ email: adminEmail, name: 'Admin', activated: true, role: 'admin' });
+                const fb = getFirebase();
+                if (fb) {
+                    try {
+                        const credential = await fb.auth.signInWithEmailAndPassword(email, password);
+                        await saveFirebaseUser({
+                            uid: credential.user.uid,
+                            email: adminEmail,
+                            name: credential.user.displayName || 'Admin',
+                            activated: true,
+                            activationPaid: true,
+                            role: 'admin',
+                            createdAt: new Date().toISOString()
+                        });
+                    } catch (error) {
+                        console.warn('Admin Firebase sign-in failed; using local admin session.', error);
+                    }
+                }
+                setCurrentUser({ email: adminEmail, name: 'Admin', activated: true, activationPaid: true, role: 'admin' });
                 location.href = 'admin.html';
                 return;
             }
@@ -492,6 +536,10 @@
     // When on index/dashboard, show activation banner if needed
     document.addEventListener('DOMContentLoaded', ()=>{
         initResponsiveSidebar();
+
+        if (window.AppData) {
+            window.AppData.syncAll().catch(console.error);
+        }
 
         const user = refreshCurrentUser();
         const isUserPage = location.pathname.endsWith('index.html') || location.pathname.endsWith('tasks.html') || location.pathname.endsWith('profile.html') || location.pathname.endsWith('apply.html') || location.pathname === '/' || location.pathname === '';
@@ -649,6 +697,12 @@
                 }
 
                 saveApplications(updatedApplications);
+                if (window.AppData) {
+                    window.AppData.upsertItem('applications', {
+                        ...application,
+                        createdAt: existingApplication && existingApplication.createdAt ? existingApplication.createdAt : new Date().toISOString()
+                    }).catch(console.error);
+                }
 
                 if (applicationNotice) {
                     applicationNotice.textContent = 'Your application is in review. Waiting for admin response.';

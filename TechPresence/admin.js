@@ -48,6 +48,9 @@ function getUsers(){
 
 function saveUsers(users){
     localStorage.setItem("users", JSON.stringify(users));
+    if (window.AppData) {
+        window.AppData.saveCollection("users", users).catch(console.error);
+    }
 }
 
 function getApplications(){
@@ -56,6 +59,9 @@ function getApplications(){
 
 function saveApplications(applications){
     localStorage.setItem("applications", JSON.stringify(applications));
+    if (window.AppData) {
+        window.AppData.saveCollection("applications", applications).catch(console.error);
+    }
 }
 
 function getTasks(){
@@ -64,6 +70,9 @@ function getTasks(){
 
 function saveTasks(tasks){
     localStorage.setItem("tasks", JSON.stringify(tasks));
+    if (window.AppData) {
+        window.AppData.saveCollection("tasks", tasks).catch(console.error);
+    }
 }
 
 function getSubmissions(){
@@ -72,6 +81,9 @@ function getSubmissions(){
 
 function saveSubmissions(submissions){
     localStorage.setItem("submissions", JSON.stringify(submissions));
+    if (window.AppData) {
+        window.AppData.saveCollection("submissions", submissions).catch(console.error);
+    }
 }
 
 function escapeHtml(value){
@@ -555,7 +567,7 @@ renderTasks();
 renderCharts();
 renderSubmissions();
 renderApprovalCharts();
-renderAwardCharts();
+if (typeof renderAwardCharts === "function") renderAwardCharts();
 
 function renderAdminWithdrawals() {
     const table = document.getElementById("withdrawalsTable");
@@ -601,6 +613,9 @@ window.updateWithdrawalStatus = function(id, status) {
         }
         w.status = status;
         localStorage.setItem("withdrawals", JSON.stringify(withdrawals));
+        if (window.AppData) {
+            window.AppData.saveCollection("withdrawals", withdrawals).catch(console.error);
+        }
         renderAdminWithdrawals();
         renderWithdrawalCharts();
     }
@@ -620,5 +635,25 @@ function renderWithdrawalCharts() {
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
 }
+
+window.addEventListener("appdata:changed", (event) => {
+    const collection = event.detail.collection;
+    if (collection === "users") {
+        renderUsers();
+        renderCharts();
+        renderApprovalCharts();
+    }
+    if (collection === "applications") renderApplications();
+    if (collection === "tasks") renderTasks();
+    if (collection === "submissions") {
+        renderSubmissions();
+        renderApprovalCharts();
+        if (typeof renderAwardCharts === "function") renderAwardCharts();
+    }
+    if (collection === "withdrawals") {
+        renderAdminWithdrawals();
+        renderWithdrawalCharts();
+    }
+});
 renderAdminWithdrawals();
 renderWithdrawalCharts();

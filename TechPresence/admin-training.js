@@ -30,6 +30,9 @@ function getTrainingSlots() {
 
 function saveTrainingSlots(slots) {
     localStorage.setItem("trainingSlots", JSON.stringify(slots));
+    if (window.AppData) {
+        window.AppData.saveCollection("trainingSlots", slots).catch(console.error);
+    }
 }
 
 function getUserSelections() {
@@ -38,6 +41,9 @@ function getUserSelections() {
 
 function saveUserSelections(selections) {
     localStorage.setItem("userTrainingSelections", JSON.stringify(selections));
+    if (window.AppData) {
+        window.AppData.saveCollection("userTrainingSelections", selections).catch(console.error);
+    }
 }
 
 function escapeHtml(value) {
@@ -92,7 +98,7 @@ document.getElementById("slotForm").addEventListener("submit", (e) => {
         location: document.getElementById("slotLocation").value,
         requirements: document.getElementById("slotRequirements").value,
         status: "available",
-        createdAt: new Date().toLocaleString()
+        createdAt: new Date().toISOString()
     };
 
     slots.push(newSlot);
@@ -350,3 +356,8 @@ document.getElementById("rescheduleModal").addEventListener("click", (e) => {
 // Initial render
 renderSlots();
 renderUserRequests();
+
+window.addEventListener("appdata:changed", (event) => {
+    if (event.detail.collection === "trainingSlots") renderSlots();
+    if (event.detail.collection === "userTrainingSelections") renderUserRequests();
+});

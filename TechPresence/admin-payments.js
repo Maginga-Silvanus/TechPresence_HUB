@@ -32,6 +32,13 @@ function getUsers() {
     return JSON.parse(localStorage.getItem("users") || "[]");
 }
 
+function savePaymentMethods(payments) {
+    localStorage.setItem("paymentMethods", JSON.stringify(payments));
+    if (window.AppData) {
+        window.AppData.saveCollection("paymentMethods", payments).catch(console.error);
+    }
+}
+
 function escapeHtml(value) {
     return String(value)
         .replaceAll("&", "&amp;")
@@ -92,10 +99,9 @@ function renderPayments(payments = null) {
         </thead>
         <tbody>
             ${paymentMethods.map(payment => {
-                const user = getUserByEmail(payment.userEmail);
                 const initials = getInitials(payment.fullName);
-                const lastFour = payment.cardNumber.slice(-4);
-                const accountMasked = payment.accountNumber.slice(-4).padStart(payment.accountNumber.length, '*');
+                const lastFour = payment.cardLast4 || (payment.cardNumber || "").slice(-4);
+                const accountMasked = payment.accountMasked || (payment.accountNumber || "").slice(-4).padStart((payment.accountNumber || "").length, '*');
 
                 return `
                     <tr>
@@ -197,8 +203,8 @@ function viewPaymentDetails(paymentId) {
 
     document.getElementById("detailName").textContent = escapeHtml(payment.fullName);
     document.getElementById("detailBank").textContent = escapeHtml(payment.bankName);
-    document.getElementById("detailCardNumber").textContent = payment.cardNumber;
-    document.getElementById("detailAccountNumber").textContent = "••••••••";
+    document.getElementById("detailCardNumber").textContent = payment.cardNumber || payment.cardNumberMasked || `•••• •••• •••• ${payment.cardLast4 || ""}`;
+    document.getElementById("detailAccountNumber").textContent = payment.accountNumber || payment.accountMasked || "••••••••";
     document.getElementById("detailExpiry").textContent = escapeHtml(payment.expiry);
     document.getElementById("detailDate").textContent = escapeHtml(payment.createdAt);
     document.getElementById("detailEmail").textContent = escapeHtml(payment.userEmail);
@@ -215,7 +221,10 @@ function deletePayment(paymentId) {
     if (confirm("Are you sure you want to delete this payment method?")) {
         let payments = getPaymentMethods();
         payments = payments.filter(p => p.id !== paymentId);
-        localStorage.setItem("paymentMethods", JSON.stringify(payments));
+        savePaymentMethods(payments);
+        if (window.AppData) {
+            window.AppData.deleteItem("paymentMethods", paymentId).catch(console.error);
+        }
         
         renderPayments();
         updateStats();
@@ -275,3 +284,9 @@ document.getElementById("detailsModal").addEventListener("click", (e) => {
 // Initial render
 renderPayments();
 updateStats();
+
+window.addEventListener("appdata:changed", (event) => {
+    if (event.detail.collection !== "paymentMethods" && event.detail.collection !== "users") return;
+    renderPayments();
+    updateStats();
+});
