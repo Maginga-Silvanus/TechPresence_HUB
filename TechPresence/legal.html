@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal - Tech Presence</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        .legal-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .legal-header {
+            margin-bottom: 50px;
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .legal-header h1 {
+            font-size: 32px;
+            color: #111827;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .legal-header p {
+            font-size: 15px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .toc {
+            background: #f9fafb;
+            border-left: 4px solid #2196F3;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            color: #111827;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .toc li {
+            margin-bottom: 10px;
+        }
+
+        .toc a {
+            color: #2196F3;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .toc a:hover {
+            color: #1976D2;
+            text-decoration: underline;
+        }
+
+        .legal-section {
+            margin-bottom: 50px;
+            scroll-margin-top: 20px;
+        }
+
+        .legal-section h2 {
+            font-size: 24px;
+            color: #111827;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+            font-weight: 700;
+        }
+
+        .legal-section h3 {
+            font-size: 18px;
+            color: #1f2937;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .legal-section p {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .legal-section ul,
+        .legal-section ol {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            font-size: 15px;
+            margin-left: 25px;
+        }
+
+        .legal-section li {
+            margin-bottom: 10px;
+        }
+
+        .highlight-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .highlight-box strong {
+            color: #1e40af;
+        }
+
+        .company-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        .company-info h3 {
+            color: white;
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        .company-info p {
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 12px;
+            line-height: 1.8;
+        }
+
+        .social-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .social-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .social-card:hover {
+            border-color: #2196F3;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .social-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .social-icon.instagram {
+            color: #e4405f;
+        }
+
+        .social-icon.whatsapp {
+            color: #25d366;
+        }
+
+        .social-icon.facebook {
+            color: #1877f2;
+        }
+
+        .social-icon.tiktok {
+            color: #000;
+        }
+
+        .social-name {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .social-handle {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+
+        .social-btn {
+            display: inline-block;
+            padding: 8px 14px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .social-btn:hover {
+            background: #1976D2;
+        }
+
+        .terms-list {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .terms-list ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .terms-list li {
+            margin-bottom: 15px;
+            color: #4b5563;
+            line-height: 1.8;
+        }
+
+        .terms-list li strong {
+            color: #111827;
+        }
+
+        .last-updated {
+            text-align: center;
+            padding: 30px;
+            background: #f9fafb;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 40px;
+        }
+
+        .back-to-top {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .back-to-top a {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .back-to-top a:hover {
+            color: #1976D2;
+        }
+
+        @media (max-width: 768px) {
+            .legal-container {
+                padding: 20px 15px;
+            }
+
+            .legal-header h1 {
+                font-size: 24px;
+            }
+
+            .legal-section h2 {
+                font-size: 20px;
+            }
+
+            .social-links {
+                grid-template-columns: 1fr;
+            }
+
+            .toc {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-text">
+                <h2>Tech Presence</h2>
+            </div>
+            <button class="collapse-btn" id="collapseBtn" title="Collapse Sidebar">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <ul class="menu">
+            <li><a href="index.html"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+            <li><a href="profile.html"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
+            <li><a href="tasks.html"><i class="fa-solid fa-list-check"></i> <span>Tasks</span></a></li>
+            <li><a href="submission.html"><i class="fa-solid fa-upload"></i> <span>Submission</span></a></li>
+            <li><a href="apply.html"><i class="fa-solid fa-file"></i> <span>Apply</span></a></li>
+            <li><a href="withdraw.html"><i class="fa-solid fa-money-bill-transfer"></i> <span>Withdraw</span></a></li>
+            <li><a href="training.html"><i class="fa-solid fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="payments.html"><i class="fa-solid fa-dollar-sign"></i> <span>Payments</span></a></li>
+            <li><a href="referrals.html"><i class="fa-solid fa-user-plus"></i> <span>Refer</span></a></li>
+            <li class="active"><a href="legal.html"><i class="fa-solid fa-scale-balanced"></i> <span>Legal</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="profile">
+                <img src="https://i.pravatar.cc/50" alt="profile">
+                <span id="sidebarName">User</span>
+            </div>
+
+            <button class="logout" data-logout>
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="legal-container">
+
+            <!-- Header -->
+            <div class="legal-header">
+                <h1>Legal & Policies</h1>
+                <p>Terms, Conditions, and Company Information</p>
+            </div>
+
+            <!-- Table of Contents -->
+            <div class="toc">
+                <h3><i class="fa-solid fa-list"></i> Quick Navigation</h3>
+                <ul>
+                    <li><a href="#about">About Tech Presence</a></li>
+                    <li><a href="#services">Our Services</a></li>
+                    <li><a href="#terms">Terms & Conditions</a></li>
+                    <li><a href="#privacy">Privacy Policy</a></li>
+                    <li><a href="#conduct">Code of Conduct</a></li>
+                    <li><a href="#social">Connect With Us</a></li>
+                </ul>
+            </div>
+
+            <!-- About Tech Presence -->
+            <div class="legal-section" id="about">
+                <h2><i class="fa-solid fa-building"></i> About Tech Presence</h2>
+                
+                <p>Tech Presence is a leading freelancer platform dedicated to connecting talented professionals with businesses and individuals seeking quality services. We operate as a digital marketplace that bridges the gap between service providers and clients globally.</p>
+
+                <div class="company-info">
+                    <h3>Who We Are</h3>
+                    <p><strong>Company Name:</strong> Tech Presence</p>
+                    <p><strong>Business Type:</strong> Freelancer Marketplace Platform</p>
+                    <p><strong>Mission:</strong> To empower freelancers and enable businesses to find top talent for their projects</p>
+                    <p><strong>Vision:</strong> To become the most trusted freelancer platform that fosters innovation, collaboration, and professional growth</p>
+                </div>
+
+                <h3>Our Commitment</h3>
+                <p>We are committed to:</p>
+                <ul>
+                    <li>Providing a safe and secure platform for freelancers and clients</li>
+                    <li>Ensuring fair payment practices and dispute resolution</li>
+                    <li>Maintaining high standards of professionalism and quality</li>
+                    <li>Protecting user data and privacy</li>
+                    <li>Supporting skill development through training programs</li>
+                    <li>Rewarding loyalty through our referral program</li>
+                </ul>
+            </div>
+
+            <!-- Services -->
+            <div class="legal-section" id="services">
+                <h2><i class="fa-solid fa-briefcase"></i> Our Services</h2>
+                
+                <p>Tech Presence offers a comprehensive range of online services to connect freelancers with opportunities:</p>
+
+                <h3>1. Job Marketplace</h3>
+                <p>Browse and apply to thousands of online job opportunities from global clients. Our platform features diverse projects ranging from web development, graphic design, content writing, digital marketing, and many more.</p>
+
+                <h3>2. Training Programs</h3>
+                <p>Enhance your skills with our professional training programs designed by industry experts. Participate in live training sessions, acquire certifications, and improve your portfolio to attract better-paying projects.</p>
+
+                <h3>3. Payment Processing</h3>
+                <p>Secure payment methods with support for multiple banks and payment options. We ensure timely and secure payment transfers for completed work.</p>
+
+                <h3>4. Referral Program</h3>
+                <p>Earn additional income by referring friends and colleagues to Tech Presence. Get 10% commission on every successful referral while your friends enjoy a 5% discount on their first project.</p>
+
+                <h3>5. Profile Management</h3>
+                <p>Build a professional portfolio, showcase your work, and connect with potential clients. Our profile tools help you highlight your expertise and attract quality projects.</p>
+
+                <div class="highlight-box">
+                    <strong>Note:</strong> All services are provided digitally and can be accessed from anywhere in the world. Tech Presence operates 24/7 to support our global freelancer community.
+                </div>
+            </div>
+
+            <!-- Terms & Conditions -->
+            <div class="legal-section" id="terms">
+                <h2><i class="fa-solid fa-file-contract"></i> Terms & Conditions</h2>
+                
+                <h3>1. Acceptance of Terms</h3>
+                <p>By accessing and using Tech Presence, you acknowledge that you have read, understood, and agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, you may not use our platform.</p>
+
+                <h3>2. User Eligibility</h3>
+                <p>You must be at least 18 years old to use Tech Presence. By registering, you represent that you have the legal authority to enter into this agreement and comply with all applicable laws.</p>
+
+                <h3>3. Account Registration</h3>
+                <p>You are responsible for maintaining the confidentiality of your account credentials and are liable for all activities that occur under your account. You agree to provide accurate, current, and complete information during registration.</p>
+
+                <h3>4. User Responsibilities</h3>
+                <ul>
+                    <li>Provide accurate and truthful information on your profile</li>
+                    <li>Maintain professional conduct with all clients</li>
+                    <li>Deliver quality work as per project specifications</li>
+                    <li>Respect intellectual property rights of others</li>
+                    <li>Not engage in any fraudulent or illegal activities</li>
+                    <li>Protect your account credentials and not share them</li>
+                </ul>
+
+                <h3>5. Project Terms</h3>
+                <p>All projects on Tech Presence are subject to:</p>
+                <ul>
+                    <li>Clear communication between freelancer and client</li>
+                    <li>Defined timelines and deliverables</li>
+                    <li>Fair compensation agreed upon before starting</li>
+                    <li>Quality standards as specified by the client</li>
+                    <li>Submission of work through the platform</li>
+                </ul>
+
+                <h3>6. Payment Terms</h3>
+                <ul>
+                    <li>Clients must fund projects before work begins</li>
+                    <li>Payments are released upon project completion and approval</li>
+                    <li>Tech Presence retains a service fee from each transaction</li>
+                    <li>Disputed payments are subject to our dispute resolution process</li>
+                    <li>All currency conversions are at current market rates</li>
+                </ul>
+
+                <h3>7. Dispute Resolution</h3>
+                <p>In case of disputes between freelancers and clients, both parties agree to:</p>
+                <ul>
+                    <li>Attempt to resolve the issue amicably through direct communication</li>
+                    <li>Submit formal complaints through our dispute system</li>
+                    <li>Accept binding arbitration by Tech Presence</li>
+                    <li>Comply with the decision made by our moderation team</li>
+                </ul>
+
+                <h3>8. Limitation of Liability</h3>
+                <p>Tech Presence is provided on an "as-is" basis. We do not guarantee specific earnings or project availability. Users use the platform at their own risk, and Tech Presence is not liable for any losses resulting from platform use.</p>
+
+                <h3>9. Termination</h3>
+                <p>We reserve the right to terminate or suspend accounts that violate these terms, engage in fraudulent activities, or fail to meet community standards.</p>
+
+                <div class="highlight-box">
+                    <strong>Important:</strong> These terms may be updated at any time. Continued use of the platform indicates your acceptance of updated terms.
+                </div>
+            </div>
+
+            <!-- Privacy Policy -->
+            <div class="legal-section" id="privacy">
+                <h2><i class="fa-solid fa-shield"></i> Privacy Policy</h2>
+                
+                <h3>1. Information We Collect</h3>
+                <p>Tech Presence collects the following information:</p>
+                <ul>
+                    <li><strong>Personal Information:</strong> Name, email, phone number, location, profile picture</li>
+                    <li><strong>Financial Information:</strong> Bank details, payment method, transaction history</li>
+                    <li><strong>Professional Information:</strong> Skills, experience, portfolio, certifications</li>
+                    <li><strong>Usage Data:</strong> IP address, browser type, pages visited, time spent on site</li>
+                    <li><strong>Communication Data:</strong> Messages, project details, feedback, ratings</li>
+                </ul>
+
+                <h3>2. How We Use Your Information</h3>
+                <p>Your information is used to:</p>
+                <ul>
+                    <li>Create and maintain your account</li>
+                    <li>Process payments and financial transactions</li>
+                    <li>Match you with suitable job opportunities</li>
+                    <li>Improve platform functionality and user experience</li>
+                    <li>Send notifications, updates, and promotional content</li>
+                    <li>Enforce terms and prevent fraud</li>
+                    <li>Comply with legal obligations</li>
+                </ul>
+
+                <h3>3. Data Security</h3>
+                <p>We implement industry-standard security measures including:</p>
+                <ul>
+                    <li>SSL encryption for data in transit</li>
+                    <li>Secure password storage using encryption</li>
+                    <li>Regular security audits and updates</li>
+                    <li>Limited access to sensitive information</li>
+                    <li>Compliance with international data protection standards</li>
+                </ul>
+
+                <h3>4. Data Sharing</h3>
+                <p>We do not sell your personal data. Your information is shared only with:</p>
+                <ul>
+                    <li>Project clients (as necessary for work coordination)</li>
+                    <li>Payment processors (for transaction handling)</li>
+                    <li>Law enforcement (when required by law)</li>
+                    <li>Service providers (for platform operations)</li>
+                </ul>
+
+                <h3>5. Your Privacy Rights</h3>
+                <p>You have the right to:</p>
+                <ul>
+                    <li>Access your personal data</li>
+                    <li>Request correction of inaccurate information</li>
+                    <li>Request deletion of your account and data</li>
+                    <li>Opt-out of marketing communications</li>
+                    <li>Request data portability</li>
+                </ul>
+
+                <h3>6. Cookies</h3>
+                <p>We use cookies to enhance user experience, remember preferences, and analyze platform usage. You can manage cookie preferences in your browser settings.</p>
+
+                <div class="highlight-box">
+                    <strong>Note:</strong> If you have privacy concerns, please contact us immediately. We take data protection seriously and are committed to safeguarding your information.
+                </div>
+            </div>
+
+            <!-- Code of Conduct -->
+            <div class="legal-section" id="conduct">
+                <h2><i class="fa-solid fa-handshake"></i> Code of Conduct</h2>
+                
+                <h3>Professional Behavior</h3>
+                <p>All Tech Presence community members are expected to:</p>
+                <ul>
+                    <li>Communicate respectfully and professionally</li>
+                    <li>Honor deadlines and project commitments</li>
+                    <li>Deliver high-quality work</li>
+                    <li>Respect client privacy and confidentiality</li>
+                    <li>Avoid conflicts of interest</li>
+                    <li>Report issues through proper channels</li>
+                </ul>
+
+                <h3>Prohibited Activities</h3>
+                <p>The following activities are strictly prohibited:</p>
+                <ul>
+                    <li>Harassment, discrimination, or abusive behavior</li>
+                    <li>Fraudulent or deceptive practices</li>
+                    <li>Plagiarism or intellectual property theft</li>
+                    <li>Sharing of illegal content</li>
+                    <li>Spam, phishing, or malicious activities</li>
+                    <li>Attempting to bypass platform systems or security</li>
+                    <li>Selling or transferring accounts</li>
+                </ul>
+
+                <h3>Consequences of Violations</h3>
+                <p>Violations of our Code of Conduct may result in:</p>
+                <ul>
+                    <li>Warning or temporary suspension</li>
+                    <li>Permanent account termination</li>
+                    <li>Forfeiture of earnings</li>
+                    <li>Legal action for serious violations</li>
+                </ul>
+            </div>
+
+            <!-- Social Media & Contact -->
+            <div class="legal-section" id="social">
+                <h2><i class="fa-solid fa-share-nodes"></i> Connect With Us</h2>
+                
+                <p>Follow Tech Presence on social media for updates, tips, job postings, and community engagement:</p>
+
+                <div class="social-links">
+                    <!-- Instagram -->
+                    <div class="social-card">
+                        <i class="fa-brands fa-instagram social-icon instagram"></i>
+                        <div class="social-name">Instagram</div>
+                        <div class="social-handle">@techpresence</div>
+                        <a href="https://instagram.com/techpresence" target="_blank" class="social-btn">
+                            <i class="fa-solid fa-arrow-right"></i> Follow
+                        </a>
+                    </div>
+
+                    <!-- WhatsApp -->
+                    <div class="social-card">
+                        <i class="fa-brands fa-whatsapp social-icon whatsapp"></i>
+                        <div class="social-name">WhatsApp</div>
+                        <div class="social-handle">+1-800-TECH-PRE</div>
+                        <a href="https://wa.me/18008324773" target="_blank" class="social-btn">
+                            <i class="fa-solid fa-arrow-right"></i> Chat
+                        </a>
+                    </div>
+
+                    <!-- Facebook -->
+                    <div class="social-card">
+                        <i class="fa-brands fa-facebook social-icon facebook"></i>
+                        <div class="social-name">Facebook</div>
+                        <div class="social-handle">Tech Presence Official</div>
+                        <a href="https://facebook.com/techpresence" target="_blank" class="social-btn">
+                            <i class="fa-solid fa-arrow-right"></i> Like
+                        </a>
+                    </div>
+
+                    <!-- TikTok -->
+                    <div class="social-card">
+                        <i class="fa-brands fa-tiktok social-icon tiktok"></i>
+                        <div class="social-name">TikTok</div>
+                        <div class="social-handle">@techpresenceofficial</div>
+                        <a href="https://tiktok.com/@techpresenceofficial" target="_blank" class="social-btn">
+                            <i class="fa-solid fa-arrow-right"></i> Follow
+                        </a>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <strong>Community Support:</strong> Join our community for job tips, industry insights, success stories, and networking opportunities. Our social media channels are also great for customer support and feedback.
+                </div>
+
+                <h3>Contact Us</h3>
+                <p>For inquiries, support, or feedback:</p>
+                <ul>
+                    <li><strong>Email:</strong> support@techpresence.com</li>
+                    <li><strong>Help Center:</strong> Available 24/7 on the platform</li>
+                    <li><strong>Response Time:</strong> We typically respond within 24 hours</li>
+                </ul>
+            </div>
+
+            <!-- Last Updated -->
+            <div class="last-updated">
+                <p><strong>Last Updated:</strong> June 15, 2026</p>
+                <p>Tech Presence reserves the right to modify these terms and policies at any time. Continued use of the platform constitutes acceptance of updates.</p>
+            </div>
+
+            <!-- Back to Top -->
+            <div class="back-to-top">
+                <a href="#top"><i class="fa-solid fa-arrow-up"></i> Back to Top</a>
+            </div>
+
+        </div>
+    </main>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script>
+    // Sidebar Collapse Functionality
+    const collapseBtn = document.getElementById("collapseBtn");
+    const sidebar = document.querySelector(".sidebar");
+
+    if (collapseBtn) {
+        const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+        if (isCollapsed) {
+            sidebar.classList.add("collapsed");
+            collapseBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        }
+
+        collapseBtn.addEventListener("click", () => {
+            sidebar.classList.toggle("collapsed");
+            const collapsed = sidebar.classList.contains("collapsed");
+            localStorage.setItem("sidebarCollapsed", collapsed);
+            
+            if (collapsed) {
+                collapseBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+            } else {
+                collapseBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+            }
+        });
+    }
+
+    // Logout functionality
+    document.querySelector("[data-logout]").addEventListener("click", () => {
+        localStorage.removeItem("currentUser");
+        window.location.href = "login.html";
+    });
+</script>
+</body>
+</html>

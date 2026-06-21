@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Approvals</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .approval-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card.chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+        canvas { max-height: 250px; margin: 0 auto; }
+        @media (max-width: 768px) { .approval-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-text"><h2>Tech Presence</h2></div>
+            <button class="collapse-btn" id="collapseBtn"><i class="fas fa-chevron-left"></i></button>
+        </div>
+        <ul class="menu">
+            <li><a href="admin.html"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+            <li><a href="admin-users.html"><i class="fas fa-users"></i> <span>Users</span></a></li>
+            <li><a href="admin-tasks.html"><i class="fas fa-list-check"></i> <span>Tasks</span></a></li>
+            <li><a href="admin-training.html"><i class="fas fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li class="active"><a href="admin-approvals.html"><i class="fas fa-circle-check"></i> <span>Approvals</span></a></li>
+            <li><a href="admin-payments.html"><i class="fas fa-wallet"></i> <span>Payments</span></a></li>
+            <li><a href="admin-settings.html"><i class="fas fa-gear"></i> <span>Settings</span></a></li>
+        </ul>
+        <button class="logout" id="logoutBtn"><i class="fas fa-right-from-bracket"></i><span>Logout</span></button>
+    </aside>
+
+    <main class="content">
+        <header><h1>Approvals & Reviews</h1></header>
+
+        <div class="approval-grid">
+            <div class="chart-card">
+                <h3>User Activation Status</h3>
+                <canvas id="userApprovalChart"></canvas>
+                <div style="margin-top: 15px; display: flex; justify-content: space-around;">
+                    <div><small>Pending</small><h4 id="pendingUserCount">0</h4></div>
+                    <div><small>Activated</small><h4 id="activeUserCount">0</h4></div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Task Submission Status</h3>
+                <canvas id="taskApprovalChart"></canvas>
+                <div style="margin-top: 15px; display: flex; justify-content: space-around;">
+                    <div><small>Pending</small><h4 id="pendingTaskCount">0</h4></div>
+                    <div><small>Approved</small><h4 id="approvedTaskCount">0</h4></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Pending User Activations</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Payment</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingUsersTable"></tbody>
+            </table>
+        </div>
+
+        <div class="table-section">
+            <h2>Pending Task Submissions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Task</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingSubmissionsTable"></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+<script>
+    // Specific logic for Approvals page tables
+    function renderApprovalTables() {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const pendingUsers = users.filter(u => u.activationPaid && !u.activated);
+        const uTable = document.getElementById('pendingUsersTable');
+        if(uTable) {
+            uTable.innerHTML = pendingUsers.map(u => `
+                <tr>
+                    <td><strong>${u.name}</strong><br><small>${u.email}</small></td>
+                    <td><span style="color: #10b981;">PAID</span></td>
+                    <td><button class="activate" data-email="${u.email}" style="background:#2196F3; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Activate</button></td>
+                </tr>
+            `).join('') || '<tr><td colspan="3">No users waiting for activation.</td></tr>';
+        }
+
+        const subs = JSON.parse(localStorage.getItem('submissions') || '[]');
+        const pendingSubs = subs.filter(s => s.status === 'pending');
+        const sTable = document.getElementById('pendingSubmissionsTable');
+        if(sTable) {
+            sTable.innerHTML = pendingSubs.map(s => `
+                <tr>
+                    <td>${s.userName}</td>
+                    <td>${s.title}</td>
+                    <td>
+                        <button onclick="updateSubmissionStatus('${s.id}', 'approved')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Approve</button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="3">No pending submissions.</td></tr>';
+        }
+    }
+    renderApprovalTables();
+    // Re-run whenever a submission is updated via the global function
+    const originalUpdateStatus = window.updateSubmissionStatus;
+    window.updateSubmissionStatus = function(id, status) {
+        originalUpdateStatus(id, status);
+        renderApprovalTables();
+        if(typeof renderApprovalCharts === 'function') renderApprovalCharts();
+    };
+</script>
+</body>
+</html>

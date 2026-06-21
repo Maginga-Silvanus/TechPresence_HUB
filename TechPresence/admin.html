@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+
+<link rel="stylesheet" href="admin.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    @media (max-width: 768px) {
+        .container { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; position: relative; }
+        .sidebar.collapsed { width: 100%; }
+        .content { margin-left: 0; padding: 15px; }
+        .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+        .chart-container { grid-template-columns: 1fr; }
+        .table-section { overflow-x: auto; }
+    }
+    .chart-section {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+
+    .chart-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .chart-wrapper {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    canvas {
+        max-height: 300px;
+    }
+
+    .user-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 6px;
+    }
+
+    .stat-item-label {
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .stat-item-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .stat-item.active .stat-item-value {
+        color: #10b981;
+    }
+
+    .stat-item.inactive .stat-item-value {
+        color: #ef4444;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-text">
+                <h2>Tech Presence</h2>
+            </div>
+            <button class="collapse-btn" id="collapseBtn" title="Collapse Sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <ul class="menu">
+            <li class="active"><a href="admin.html"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+            <li><a href="admin-users.html"><i class="fas fa-users"></i> <span>Users</span></a></li>
+            <li><a href="admin-tasks.html"><i class="fas fa-list-check"></i> <span>Tasks</span></a></li>
+            <li><a href="admin-training.html"><i class="fas fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="admin-approvals.html"><i class="fas fa-circle-check"></i> <span>Approvals</span></a></li>
+            <li><a href="admin-payments.html"><i class="fas fa-wallet"></i> <span>Payments</span></a></li>
+            <li><a href="admin-settings.html"><i class="fas fa-gear"></i> <span>Settings</span></a></li>
+        </ul>
+
+        <button class="logout" id="logoutBtn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </button>
+    </aside>
+
+    <!-- Main -->
+
+    <main class="content">
+        <header>
+            <h1>Admin Dashboard</h1>
+        </header>
+
+        <!-- Stats -->
+
+        <div class="stats">
+            <div class="stat-card">
+                <h4>Total Users</h4>
+                <h2 id="users">0</h2>
+            </div>
+            <div class="stat-card blue">
+                <h4>Total Tasks</h4>
+                <h2 id="tasks">0</h2>
+            </div>
+            <div class="stat-card orange">
+                <h4>Pending Reviews</h4>
+                <h2 id="reviews">0</h2>
+            </div>
+            <div class="stat-card green">
+                <h4>Total Awarded</h4>
+                <h2 id="totalAwardedStat">$0</h2>
+            </div>
+            <div class="stat-card purple">
+                <h4>Total Withdrawn</h4>
+                <h2 id="adminTotalWithdrawn">$0</h2>
+            </div>
+        </div>
+        <!-- User Activation Chart -->
+        <div class="chart-section">
+            <h2 style="margin-top: 0; margin-bottom: 30px; color: #111827;">User Status Overview</h2>
+            
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <div class="chart-title">User Activation Status</div>
+                    <canvas id="activationChart"></canvas>
+                    <div class="user-stats">
+                        <div class="stat-item active">
+                            <div class="stat-item-label">Activated</div>
+                            <div class="stat-item-value" id="activatedCount">0</div>
+                        </div>
+                        <div class="stat-item inactive">
+                            <div class="stat-item-label">Not Activated</div>
+                            <div class="stat-item-value" id="inactivatedCount">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <div class="chart-title">Payment Status Distribution</div>
+                    <canvas id="paymentChart"></canvas>
+                    <div class="user-stats">
+                        <div class="stat-item active">
+                            <div class="stat-item-label">Paid</div>
+                            <div class="stat-item-value" id="paidCount">0</div>
+                        </div>
+                        <div class="stat-item inactive">
+                            <div class="stat-item-label">Not Paid</div>
+                            <div class="stat-item-value" id="notPaidCount">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users -->
+
+        <div class="table-section">
+
+            <h2>Users</h2>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="usersTable"></tbody>
+
+            </table>
+
+        </div>
+
+        <!-- Applications -->
+
+        <div class="table-section">
+
+            <h2>Applications</h2>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Work Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="applicationsTable"></tbody>
+
+            </table>
+
+        </div>
+
+        <!-- Task Management -->
+
+        <div class="table-section">
+
+            <h2>Manage Tasks</h2>
+
+            <form id="taskForm" class="task-form">
+                <input id="taskTitle" type="text" placeholder="Task title" required>
+                <input id="taskReward" type="number" placeholder="Reward" min="0" required>
+                <input id="taskDocument" type="url" placeholder="Document link (optional)">
+                <textarea id="taskDescription" placeholder="Task description" required></textarea>
+                <button type="submit" id="taskSubmitBtn">
+                    Upload Task
+                </button>
+            </form>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Description</th>
+                        <th>Reward</th>
+                        <th>Document</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tasksTable"></tbody>
+
+            </table>
+
+        </div>
+
+        <!-- Recent Tasks -->
+
+        <div class="table-section">
+            <h2>Recent Submissions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Task</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="submissionsTable"></tbody>
+            </table>
+        </div>
+
+    </main>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+
+</body>
+</html>

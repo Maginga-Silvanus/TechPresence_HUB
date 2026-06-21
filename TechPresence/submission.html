@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Submission</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .sidebar.collapsed { width: 100%; }
+            .main-content { margin-left: 0; padding: 15px; }
+            .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .application-form { grid-template-columns: 1fr; }
+            .sidebar .menu { display: flex; overflow-x: auto; padding: 10px; gap: 15px; }
+            .sidebar .menu li span { display: none; }
+            .sidebar-footer { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-text">
+                <h2>Tech Presence</h2>
+            </div>
+            <button class="collapse-btn" id="collapseBtn" title="Collapse Sidebar">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <ul class="menu">
+            <li><a href="index.html"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+            <li><a href="profile.html"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
+            <li><a href="tasks.html"><i class="fa-solid fa-list-check"></i> <span>Tasks</span></a></li>
+            <li class="active"><a href="submission.html"><i class="fa-solid fa-upload"></i> <span>Submission</span></a></li>
+            <li><a href="apply.html"><i class="fa-solid fa-file"></i> <span>Apply</span></a></li>
+            <li><a href="withdraw.html"><i class="fa-solid fa-money-bill-transfer"></i> <span>Withdraw</span></a></li>
+            <li><a href="training.html"><i class="fa-solid fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="payments.html"><i class="fa-solid fa-dollar-sign"></i> <span>Payments</span></a></li>
+            <li><a href="referrals.html"><i class="fa-solid fa-user-plus"></i> <span>Refer</span></a></li>
+            <li><a href="legal.html"><i class="fa-solid fa-scale-balanced"></i> <span>Legal</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="profile">
+                <img src="https://i.pravatar.cc/50" alt="profile">
+                <span id="sidebarName">User</span>
+            </div>
+
+            <button class="logout" data-logout>
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <h1>Task Submission</h1>
+        </header>
+
+        <div class="notice" id="submissionNotice">
+            Upload your task and wait for review status from the admin.
+        </div>
+
+        <section class="stats" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-label"><i class="fa-solid fa-upload"></i> Total Submissions</div>
+                <div class="stat-value" id="submissionCount">0</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-label"><i class="fa-solid fa-hourglass-half"></i> Pending</div>
+                <div class="stat-value" id="submissionPending">0</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label"><i class="fa-solid fa-check-circle"></i> Approved</div>
+                <div class="stat-value" id="submissionApproved">0</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-label"><i class="fa-solid fa-times-circle"></i> Declined</div>
+                <div class="stat-value" id="submissionDeclined">0</div>
+            </div>
+        </section>
+
+        <section class="profile-section">
+            <h2>Upload Task</h2>
+            <form id="submissionForm" class="application-form">
+                <div>
+                    <label for="submissionTitle">Task Title</label>
+                    <input id="submissionTitle" type="text" required>
+                </div>
+                <div>
+                    <label for="submissionReward">Reward</label>
+                    <input id="submissionReward" type="number" min="0" required>
+                </div>
+                <div>
+                    <label for="submissionDocument">Upload Document</label>
+                    <input id="submissionDocument" type="file" required>
+                </div>
+                <div>
+                    <label for="submissionScreenshot">Upload Screenshot</label>
+                    <input id="submissionScreenshot" type="file" accept="image/*" required>
+                </div>
+                <div class="full-row">
+                    <label for="submissionDescription">Task Description</label>
+                    <textarea id="submissionDescription" required></textarea>
+                </div>
+                <button type="submit">Submit Task</button>
+            </form>
+        </section>
+
+        <section class="profile-section" style="margin-top:30px;">
+            <h2>Your Submissions</h2>
+            <div id="submissionList"></div>
+        </section>
+    </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

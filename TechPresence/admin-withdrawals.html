@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Withdrawal Requests</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .withdraw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card.chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+        canvas { max-height: 250px; margin: 0 auto; }
+        @media (max-width: 768px) { .withdraw-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-text"><h2>Tech Presence</h2></div>
+            <button class="collapse-btn" id="collapseBtn"><i class="fas fa-chevron-left"></i></button>
+        </div>
+        <ul class="menu">
+            <li><a href="admin.html"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+            <li><a href="admin-users.html"><i class="fas fa-users"></i> <span>Users</span></a></li>
+            <li><a href="admin-tasks.html"><i class="fas fa-list-check"></i> <span>Tasks</span></a></li>
+            <li><a href="admin-training.html"><i class="fas fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="admin-approvals.html"><i class="fas fa-circle-check"></i> <span>Approvals</span></a></li>
+            <li><a href="admin-payments.html"><i class="fas fa-wallet"></i> <span>Payments</span></a></li>
+            <li><a href="admin-settings.html"><i class="fas fa-gear"></i> <span>Settings</span></a></li>
+        </ul>
+        <button class="logout" id="logoutBtn"><i class="fas fa-right-from-bracket"></i><span>Logout</span></button>
+    </aside>
+
+    <main class="content">
+        <header><h1>Withdrawal Management</h1></header>
+
+        <div class="stats">
+            <div class="stat-card green"><h4>Total Paid Out</h4><h2 id="adminTotalWithdrawn">$0</h2></div>
+            <div class="stat-card orange"><h4>Pending Amount</h4><h2 id="adminPendingWithdrawn">$0</h2></div>
+            <div class="stat-card blue"><h4>Requests</h4><h2 id="adminWithdrawRequests">0</h2></div>
+        </div>
+
+        <div class="withdraw-grid">
+            <div class="stat-card chart-card">
+                <h3>Status Distribution</h3>
+                <canvas id="withdrawalChart"></canvas>
+            </div>
+            <div class="table-section" style="margin-bottom:0;">
+                <h3>About Withdrawals</h3>
+                <p style="color: #6b7280; font-size: 14px; margin-top:10px;">
+                    Users can request withdrawals once their balance exceeds $100. <br><br>
+                    Approving a request confirms that payment has been processed manually to their chosen method.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Withdrawal Requests</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="withdrawalsTable"></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+<script>
+    if (typeof renderAdminWithdrawals === 'function') {
+        renderAdminWithdrawals();
+        renderWithdrawalCharts();
+    }
+</script>
+</body>
+</html>

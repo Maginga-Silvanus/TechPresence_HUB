@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Management</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .sidebar.collapsed { width: 100%; }
+            .content { margin-left: 0; padding: 15px; }
+            .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .chart-container { grid-template-columns: 1fr; }
+        }
+        .chart-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 10px rgba(0,0,0,.05);
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-wrapper {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        .user-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+
+        .stat-item-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .stat-item-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .stat-item.active .stat-item-value {
+            color: #10b981;
+        }
+
+        .stat-item.inactive .stat-item-value {
+            color: #ef4444;
+        }
+
+        .users-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 10px rgba(0,0,0,.05);
+        }
+
+        .section-header {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-input:focus {
+            border-color: #111827;
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            border-color: #111827;
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+        }
+
+        .users-table thead {
+            background: #f5f6fa;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .users-table th {
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .users-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #111827;
+            font-size: 14px;
+        }
+
+        .user-email {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-paid {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-unpaid {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .action-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .activate-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .activate-btn:hover {
+            background: #1976D2;
+        }
+
+        .activate-btn.activated {
+            background: #10b981;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #d1d5db;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+
+            .users-table {
+                font-size: 12px;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 10px;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-input {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-text">
+                <h2>Tech Presence</h2>
+            </div>
+            <button class="collapse-btn" id="collapseBtn" title="Collapse Sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <ul class="menu">
+            <li><a href="admin.html"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+            <li class="active"><a href="admin-users.html"><i class="fas fa-users"></i> <span>Users</span></a></li>
+            <li><a href="admin-tasks.html"><i class="fas fa-list-check"></i> <span>Tasks</span></a></li>
+            <li><a href="admin-training.html"><i class="fas fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="admin-approvals.html"><i class="fas fa-circle-check"></i> <span>Approvals</span></a></li>
+            <li><a href="admin-payments.html"><i class="fas fa-wallet"></i> <span>Payments</span></a></li>
+            <li><a href="admin-settings.html"><i class="fas fa-gear"></i> <span>Settings</span></a></li>
+        </ul>
+        <button class="logout" id="logoutBtn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </button>
+
+    </aside>
+
+    <!-- Main -->
+
+    <main class="content">
+
+        <header>
+            <h1>User Management</h1>
+        </header>
+
+        <!-- Charts -->
+        <div class="chart-section">
+            <h2 style="margin-top: 0; margin-bottom: 30px; color: #111827;">User Statistics Overview</h2>
+            
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <div class="chart-title">User Activation Status</div>
+                    <canvas id="activationChart"></canvas>
+                    <div class="user-stats">
+                        <div class="stat-item active">
+                            <div class="stat-item-label">Activated</div>
+                            <div class="stat-item-value" id="activatedCount">0</div>
+                        </div>
+                        <div class="stat-item inactive">
+                            <div class="stat-item-label">Not Activated</div>
+                            <div class="stat-item-value" id="inactivatedCount">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <div class="chart-title">User Payment Status</div>
+                    <canvas id="paymentChart"></canvas>
+                    <div class="user-stats">
+                        <div class="stat-item active">
+                            <div class="stat-item-label">Paid</div>
+                            <div class="stat-item-value" id="paidCount">0</div>
+                        </div>
+                        <div class="stat-item inactive">
+                            <div class="stat-item-label">Not Paid</div>
+                            <div class="stat-item-value" id="notPaidCount">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Management -->
+        <div class="users-section">
+
+            <div class="section-header">
+                <h2 class="section-title">All Users</h2>
+                <p class="section-subtitle">Manage and view all registered users</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <input type="text" class="filter-input" id="searchInput" placeholder="Search by name or email...">
+                <select class="filter-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="active">Activated</option>
+                    <option value="inactive">Not Activated</option>
+                </select>
+                <select class="filter-select" id="paymentFilter">
+                    <option value="">All Payment</option>
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Not Paid</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <table class="users-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Join Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No users found</h3>
+                            <p>No registered users yet</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="admin-users.js"></script>
+</body>
+</html>

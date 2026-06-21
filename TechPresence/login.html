@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+<div class="auth-container">
+
+    <div class="card">
+        <h2>Welcome Back</h2>
+        <p>Login to your account</p>
+
+        <form id="loginForm">
+            <input id="loginEmail" type="email" placeholder="Email Address" required>
+            <input id="loginPassword" type="password" placeholder="Password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <button type="button" class="google-auth-btn" data-google-signin>
+            <span class="google-icon" aria-hidden="true">G</span>
+            Continue with Google
+        </button>
+
+        <div class="footer">
+            Don't have an account?
+            <a href="register.htm">Register</a>
+        </div>
+    </div>
+
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>

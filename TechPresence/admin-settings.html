@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Settings</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-text">
+                <h2>Tech Presence</h2>
+            </div>
+            <button class="collapse-btn" id="collapseBtn" title="Collapse Sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <ul class="menu">
+            <li><a href="admin.html"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+            <li><a href="admin-users.html"><i class="fas fa-users"></i> <span>Users</span></a></li>
+            <li><a href="admin-tasks.html"><i class="fas fa-list-check"></i> <span>Tasks</span></a></li>
+            <li><a href="admin-training.html"><i class="fas fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="admin-approvals.html"><i class="fas fa-circle-check"></i> <span>Approvals</span></a></li>
+            <li><a href="admin-payments.html"><i class="fas fa-wallet"></i> <span>Payments</span></a></li>
+            <li class="active"><a href="admin-settings.html"><i class="fas fa-gear"></i> <span>Settings</span></a></li>
+        </ul>
+
+        <button class="logout" id="logoutBtn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </button>
+    </aside>
+
+    <main class="content">
+        <header>
+            <h1>Settings</h1>
+        </header>
+
+        <section class="settings-grid">
+            <form id="settingsForm" class="settings-card">
+                <h2>Platform Settings</h2>
+
+                <label for="settingPlatformName">Platform Name</label>
+                <input id="settingPlatformName" type="text" required>
+
+                <label for="settingSupportEmail">Support Email</label>
+                <input id="settingSupportEmail" type="email" required>
+
+                <label for="settingActivationFee">Activation Fee</label>
+                <input id="settingActivationFee" type="number" min="0" step="1" required>
+
+                <label for="settingMinimumWithdrawal">Minimum Withdrawal</label>
+                <input id="settingMinimumWithdrawal" type="number" min="0" step="1" required>
+
+                <label for="settingAdminEmail">Admin Email</label>
+                <input id="settingAdminEmail" type="email" required>
+
+                <button type="submit">Save Settings</button>
+            </form>
+
+            <div class="settings-card">
+                <h2>Current Settings</h2>
+                <div class="settings-summary">
+                    <div>
+                        <span>Platform</span>
+                        <strong id="summaryPlatformName">Tech Presence</strong>
+                    </div>
+                    <div>
+                        <span>Support Email</span>
+                        <strong id="summarySupportEmail">support@techpresence.com</strong>
+                    </div>
+                    <div>
+                        <span>Activation Fee</span>
+                        <strong id="summaryActivationFee">300</strong>
+                    </div>
+                    <div>
+                        <span>Minimum Withdrawal</span>
+                        <strong id="summaryMinimumWithdrawal">100</strong>
+                    </div>
+                    <div>
+                        <span>Admin Email</span>
+                        <strong id="summaryAdminEmail">silvamanguye@gmail.com</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="admin-settings.js"></script>
+</body>
+</html>

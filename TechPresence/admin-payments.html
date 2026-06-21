@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Payment Management</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        .payment-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 10px rgba(0,0,0,.05);
+        }
+
+        .payment-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .payment-header h2 {
+            color: #111827;
+            margin-bottom: 5px;
+        }
+
+        .payment-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 32px;
+            margin: 10px 0;
+        }
+
+        .stat-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            border-color: #111827;
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+        }
+
+        .payments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .payments-table thead {
+            background: #f5f6fa;
+        }
+
+        .payments-table th,
+        .payments-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .payments-table th {
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .payments-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .card-number-masked {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+
+        .bank-badge {
+            background: #e3f2fd;
+            color: #1976D2;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .view-btn,
+        .delete-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .view-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .view-btn:hover {
+            background: #1976D2;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #b91c1c;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #d1d5db;
+            margin-bottom: 15px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .detail-grid.full {
+            grid-template-columns: 1fr;
+        }
+
+        .card-visual {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-visual::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .card-visual-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-holder {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-number-display {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .card-field-modal {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .card-label-small {
+            opacity: 0.9;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .modal-btn-primary {
+            background: #111827;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #1f2937;
+        }
+
+        .modal-btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .pagination button.active {
+            background: #111827;
+            color: white;
+            border-color: #111827;
+        }
+
+        .pagination button:hover {
+            border-color: #111827;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-text">
+                <h2>Tech Presence</h2>
+            </div>
+            <button class="collapse-btn" id="collapseBtn" title="Collapse Sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <ul class="menu">
+            <li><a href="admin.html"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+            <li><a href="admin-users.html"><i class="fas fa-users"></i> <span>Users</span></a></li>
+            <li><a href="admin-tasks.html"><i class="fas fa-list-check"></i> <span>Tasks</span></a></li>
+            <li><a href="admin-training.html"><i class="fas fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="admin-approvals.html"><i class="fas fa-circle-check"></i> <span>Approvals</span></a></li>
+            <li class="active"><a href="admin-payments.html"><i class="fas fa-wallet"></i> <span>Payments</span></a></li>
+            <li><a href="admin-settings.html"><i class="fas fa-gear"></i> <span>Settings</span></a></li>
+        </ul>
+        <button class="logout" id="logoutBtn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </button>
+
+    </aside>
+
+    <!-- Main -->
+
+    <main class="content">
+
+        <header>
+            <h1>Payment Management</h1>
+        </header>
+
+        <!-- Stats -->
+        <div class="payment-stats">
+
+            <div class="stat-card">
+                <i class="fas fa-wallet" style="font-size: 32px;"></i>
+                <h3 id="totalMethods">0</h3>
+                <p>Total Payment Methods</p>
+            </div>
+
+            <div class="stat-card blue">
+                <i class="fas fa-users" style="font-size: 32px;"></i>
+                <h3 id="totalUsers">0</h3>
+                <p>Users with Payments</p>
+            </div>
+
+            <div class="stat-card green">
+                <i class="fas fa-building" style="font-size: 32px;"></i>
+                <h3 id="topBank">N/A</h3>
+                <p>Most Used Bank</p>
+            </div>
+
+            <div class="stat-card orange">
+                <i class="fas fa-clock" style="font-size: 32px;"></i>
+                <h3 id="thisMonth">0</h3>
+                <p>Added This Month</p>
+            </div>
+
+        </div>
+
+        <!-- Section -->
+        <div class="payment-section">
+
+            <div class="payment-header">
+                <h2>User Payment Details</h2>
+                <p style="color: #6b7280; font-size: 14px;">View and manage all payment methods submitted by users</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <input type="text" class="filter-input" id="searchInput" placeholder="Search by name or email...">
+                <select class="filter-select" id="bankFilter">
+                    <option value="">All Banks</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <table class="payments-table" id="paymentsTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Bank</th>
+                        <th>Card (Last 4)</th>
+                        <th>Account</th>
+                        <th>Date Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="6" class="empty-state">No payment methods found</td></tr>
+                </tbody>
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+
+<!-- Details Modal -->
+<div class="modal" id="detailsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>Payment Details</span>
+            <button class="modal-close" onclick="closeDetailsModal()">&times;</button>
+        </div>
+
+        <div class="card-visual" id="cardVisual">
+            <div class="card-visual-content">
+                <div class="card-holder" id="cardHolderDisplay">CARDHOLDER NAME</div>
+                <div class="card-number-display" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+                <div class="card-footer">
+                    <div class="card-field-modal">
+                        <div class="card-label-small">Expires</div>
+                        <div id="expiryDisplay">MM/YY</div>
+                    </div>
+                    <div style="text-align: right;" id="bankDisplay">BANK</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-item">
+                <div class="detail-label">Full Name</div>
+                <div class="detail-value" id="detailName">-</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Bank</div>
+                <div class="detail-value" id="detailBank">-</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Card Number</div>
+                <div class="detail-value card-number-masked" id="detailCardNumber">-</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Account Number</div>
+                <div class="detail-value" id="detailAccountNumber">••••••••</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">CVV</div>
+                <div class="detail-value">•••</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Expiry Date</div>
+                <div class="detail-value" id="detailExpiry">-</div>
+            </div>
+            <div class="detail-item full">
+                <div class="detail-label">Date Added</div>
+                <div class="detail-value" id="detailDate">-</div>
+            </div>
+            <div class="detail-item full">
+                <div class="detail-label">User Email</div>
+                <div class="detail-value" id="detailEmail">-</div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-secondary" onclick="closeDetailsModal()">Close</button>
+            <button class="modal-btn modal-btn-primary" id="deleteConfirmBtn">Delete Payment Method</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="admin-payments.js"></script>
+</body>
+</html>

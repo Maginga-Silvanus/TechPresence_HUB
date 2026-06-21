@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register</title>
+<link rel="stylesheet" href="auth.css">
+</head>
+<body>
+
+<div class="auth-container">
+
+    <div class="card">
+        <h2>Create Account</h2>
+        <p>Join the platform today</p>
+
+        <form id="registerForm">
+            <input id="name" type="text" placeholder="Full Name" required>
+            <input id="email" type="email" placeholder="Email Address" required>
+            <input id="password" type="password" placeholder="Password" required>
+            <input id="confirm" type="password" placeholder="Confirm Password" required>
+
+            <button type="submit">Register</button>
+        </form>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <button type="button" class="google-auth-btn" data-google-signin>
+            <span class="google-icon" aria-hidden="true">G</span>
+            Continue with Google
+        </button>
+
+        <div class="footer">
+            Already have an account?
+            <a href="login.html">Login</a>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>

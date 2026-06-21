@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Training Management</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        .training-section {
+            margin-top: 30px;
+        }
+
+        .training-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .submit-btn {
+            background: #0066cc;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #0052a3;
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #333;
+            padding: 12px 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .slots-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .slots-table thead {
+            background: #f5f5f5;
+        }
+
+        .slots-table th,
+        .slots-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .slots-table th {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .slots-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .edit-btn {
+            background: #4caf50;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-available {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .requests-table thead {
+            background: #f5f5f5;
+        }
+
+        .requests-table th,
+        .requests-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .requests-table th {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .requests-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .request-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .status-approved {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .status-rejected {
+            background: #ffccbc;
+            color: #d84315;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .approve-btn {
+            background: #4caf50;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .reject-btn {
+            background: #f44336;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .reschedule-btn {
+            background: #ff9800;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .success-message {
+            background: #c8e6c9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-text">
+                <h2>Tech Presence</h2>
+            </div>
+            <button class="collapse-btn" id="collapseBtn" title="Collapse Sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <ul class="menu">
+            <li><a href="admin.html"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+            <li><a href="admin-users.html"><i class="fas fa-users"></i> <span>Users</span></a></li>
+            <li><a href="admin-tasks.html"><i class="fas fa-list-check"></i> <span>Tasks</span></a></li>
+            <li class="active"><a href="admin-training.html"><i class="fas fa-graduation-cap"></i> <span>Training</span></a></li>
+            <li><a href="admin-approvals.html"><i class="fas fa-circle-check"></i> <span>Approvals</span></a></li>
+            <li><a href="admin-payments.html"><i class="fas fa-wallet"></i> <span>Payments</span></a></li>
+            <li><a href="admin-settings.html"><i class="fas fa-gear"></i> <span>Settings</span></a></li>
+        </ul>
+        <button class="logout" id="logoutBtn">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </button>
+
+    </aside>
+
+    <!-- Main -->
+
+    <main class="content">
+
+        <header>
+            <h1>Training Management</h1>
+        </header>
+
+        <div class="training-section">
+
+            <div class="training-tabs">
+                <button class="tab-btn active" data-tab="create-slot">Create Slot</button>
+                <button class="tab-btn" data-tab="manage-slots">Manage Slots</button>
+                <button class="tab-btn" data-tab="user-requests">User Requests</button>
+            </div>
+
+            <!-- Create Slot Tab -->
+            <div class="tab-content active" id="create-slot-tab">
+                <h3>Create New Training Slot</h3>
+                <div class="success-message" id="successMessage">Slot created successfully!</div>
+                
+                <form id="slotForm" style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label for="slotTitle">Training Title</label>
+                        <input type="text" id="slotTitle" placeholder="e.g., Advanced JavaScript" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slotDescription">Description</label>
+                        <textarea id="slotDescription" placeholder="Describe what participants will learn" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="slotTrainer">Trainer Name</label>
+                            <input type="text" id="slotTrainer" placeholder="Trainer name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="slotCategory">Category</label>
+                            <input type="text" id="slotCategory" placeholder="e.g., Development" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="slotLevel">Level</label>
+                            <select id="slotLevel" required>
+                                <option value="">Select Level</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="slotDate">Date</label>
+                            <input type="date" id="slotDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="slotTime">Time</label>
+                            <input type="time" id="slotTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="slotDuration">Duration</label>
+                            <input type="text" id="slotDuration" placeholder="e.g., 2 hours" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slotLocation">Location/Meeting Link</label>
+                        <input type="text" id="slotLocation" placeholder="e.g., Zoom: https://zoom.us/..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slotRequirements">Prerequisites (Optional)</label>
+                        <textarea id="slotRequirements" placeholder="Any requirements or prerequisites"></textarea>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="submit-btn">Create Training Slot</button>
+                        <button type="reset" class="reset-btn">Clear</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manage Slots Tab -->
+            <div class="tab-content" id="manage-slots-tab">
+                <h3>Manage Training Slots</h3>
+                <table class="slots-table" id="slotsTable">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Trainer</th>
+                            <th>Date & Time</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" class="empty-message">No slots created yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- User Requests Tab -->
+            <div class="tab-content" id="user-requests-tab">
+                <h3>User Training Requests</h3>
+                <table class="requests-table" id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>User Name</th>
+                            <th>Training Slot</th>
+                            <th>Requested On</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5" class="empty-message">No requests yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<!-- Approve/Reject Modal -->
+<div class="modal" id="actionModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span id="actionModalTitle">Respond to Request</span>
+            <button class="modal-close" onclick="closeActionModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="actionMessage">Message to User</label>
+                <textarea id="actionMessage" placeholder="Add a message for the user"></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-primary" id="confirmActionBtn" onclick="confirmAction()">Confirm</button>
+            <button class="modal-btn btn-secondary" onclick="closeActionModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Modal -->
+<div class="modal" id="rescheduleModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>Reschedule Training</span>
+            <button class="modal-close" onclick="closeRescheduleModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="newDate">New Date</label>
+                <input type="date" id="newDate">
+            </div>
+            <div class="form-group">
+                <label for="newTime">New Time</label>
+                <input type="time" id="newTime">
+            </div>
+            <div class="form-group">
+                <label for="rescheduleMessage">Message to User</label>
+                <textarea id="rescheduleMessage" placeholder="Explain why you're rescheduling"></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-primary" onclick="confirmReschedule()">Reschedule</button>
+            <button class="modal-btn btn-secondary" onclick="closeRescheduleModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="admin-training.js"></script>
+</body>
+</html>
