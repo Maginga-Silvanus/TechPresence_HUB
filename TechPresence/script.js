@@ -71,6 +71,19 @@ function escapeHtml(value){
 function renderTasks(){
     if (!tasksList) return;
 
+    const user = getCurrentUser();
+
+    if (user && user.role === "user" && !user.activated) {
+        if (availableDisplay) availableDisplay.textContent = "0";
+        if (taskCount) taskCount.textContent = "Account activation required";
+        tasksList.innerHTML = `
+            <div class="empty-tasks">
+                Your account is not activated yet. You can update your profile and submit your application while waiting for activation.
+            </div>
+        `;
+        return;
+    }
+
     const savedReviewMessage = localStorage.getItem("taskReviewMessage");
     if (reviewNotice && savedReviewMessage) {
         reviewNotice.textContent = savedReviewMessage;

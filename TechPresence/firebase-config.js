@@ -107,8 +107,8 @@
             return safeParse(localStorage.getItem(name), []);
         },
         async syncAll() {
-            await Promise.all(collectionNames.map(syncLocalToFirestore));
             await Promise.all(collectionNames.map(syncCollectionFromFirestore));
+            await Promise.all(collectionNames.filter(name => name !== 'users').map(syncLocalToFirestore));
         },
         async saveCollection(name, items) {
             storeCollection(name, items);

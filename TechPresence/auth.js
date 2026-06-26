@@ -9,6 +9,11 @@
         return JSON.parse(localStorage.getItem('users')||'[]');
     }
 
+    function getLocalUser(email){
+        const normalizedEmail = (email || '').toLowerCase();
+        return getUsers().find(item=>(item.email || '').toLowerCase()===normalizedEmail) || null;
+    }
+
     function saveUsers(users){
         localStorage.setItem('users', JSON.stringify(users));
         if (window.AppData) {
@@ -72,7 +77,14 @@
 
     async function getOrCreateFirebaseProfile(firebaseUser){
         const email = (firebaseUser.email || '').toLowerCase();
-        const existingUser = await getFirebaseUser(email);
+        let existingUser = null;
+
+        try {
+            existingUser = await getFirebaseUser(email);
+        } catch (error) {
+            console.warn('Unable to read Firebase profile; using local profile if available.', error);
+            existingUser = getLocalUser(email);
+        }
 
         if (existingUser) {
             const mergedUser = {
@@ -83,7 +95,7 @@
                 profilePic: existingUser.profilePic || firebaseUser.photoURL || ''
             };
 
-            await saveFirebaseUser(mergedUser);
+            await saveFirebaseUser(mergedUser).catch(error => console.warn('Unable to update Firebase profile.', error));
             upsertLocalUser(mergedUser);
             return mergedUser;
         }
@@ -101,7 +113,7 @@
             createdAt: new Date().toISOString()
         };
 
-        await saveFirebaseUser(newUser);
+        await saveFirebaseUser(newUser).catch(error => console.warn('Unable to save Firebase profile.', error));
         upsertLocalUser(newUser);
         return newUser;
     }
@@ -184,7 +196,7 @@
         const user = getCurrentUser();
         if (!user || user.role !== 'user') return user;
 
-        const savedUser = getUsers().find(item=>item.email===user.email);
+        const savedUser = getLocalUser(user.email);
         if (!savedUser) return user;
 
         const refreshedUser = {
@@ -200,6 +212,24 @@
 
         setCurrentUser(refreshedUser);
         return refreshedUser;
+    }
+
+    async function refreshCurrentUserFromFirebase(){
+        const user = getCurrentUser();
+        const fb = getFirebase();
+
+        if (!user || user.role !== 'user' || !fb) return user;
+
+        try {
+            const savedUser = await getFirebaseUser(user.email);
+            if (!savedUser) return user;
+
+            upsertLocalUser(savedUser);
+            return refreshCurrentUser();
+        } catch (error) {
+            console.warn('Unable to refresh user activation from Firebase.', error);
+            return user;
+        }
     }
 
     function logout(){
@@ -480,7 +510,12 @@
 
                 if (fb) {
                     const credential = await fb.auth.signInWithEmailAndPassword(email, password);
-                    user = await getFirebaseUser(email);
+                    try {
+                        user = await getFirebaseUser(email);
+                    } catch (error) {
+                        console.warn('Unable to read Firebase profile after login; using local session profile.', error);
+                        user = getLocalUser(email);
+                    }
 
                     if (!user) {
                         user = {
@@ -494,8 +529,17 @@
                             role: 'user',
                             createdAt: new Date().toISOString()
                         };
-                        await saveFirebaseUser(user);
                     }
+
+                    user = {
+                        ...user,
+                        uid: user.uid || credential.user.uid,
+                        email,
+                        name: user.name || credential.user.displayName || email.split('@')[0],
+                        role: user.role || 'user'
+                    };
+
+                    await saveFirebaseUser(user).catch(error => console.warn('Unable to save Firebase profile after login.', error));
 
                     upsertLocalUser(user);
                 } else {
@@ -534,14 +578,15 @@
     });
 
     // When on index/dashboard, show activation banner if needed
-    document.addEventListener('DOMContentLoaded', ()=>{
+    document.addEventListener('DOMContentLoaded', async ()=>{
         initResponsiveSidebar();
 
         if (window.AppData) {
-            window.AppData.syncAll().catch(console.error);
+            await window.AppData.syncAll().catch(console.error);
         }
 
-        const user = refreshCurrentUser();
+        let user = refreshCurrentUser();
+        user = await refreshCurrentUserFromFirebase();
         const isUserPage = location.pathname.endsWith('index.html') || location.pathname.endsWith('tasks.html') || location.pathname.endsWith('profile.html') || location.pathname.endsWith('apply.html') || location.pathname === '/' || location.pathname === '';
 
         if (isUserPage && !user) {
@@ -739,6 +784,18 @@
             button.style.cursor = 'pointer';
             banner.appendChild(button);
             container.insertBefore(banner, container.firstChild);
+        }
+    });
+
+    window.addEventListener('appdata:changed', (event) => {
+        if (!event.detail || event.detail.collection !== 'users') return;
+
+        const previousUser = getCurrentUser();
+        const refreshedUser = refreshCurrentUser();
+
+        if (!previousUser || !refreshedUser || previousUser.email !== refreshedUser.email) return;
+        if (previousUser.activated !== refreshedUser.activated || previousUser.activationPaid !== refreshedUser.activationPaid) {
+            location.reload();
         }
     });
 
