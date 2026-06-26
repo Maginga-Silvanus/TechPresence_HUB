@@ -199,6 +199,10 @@ function getSubmissions() {
     return JSON.parse(localStorage.getItem("submissions") || "[]");
 }
 
+function getAwards() {
+    return JSON.parse(localStorage.getItem("awards") || "[]");
+}
+
 function saveSubmissions(submissions) {
     localStorage.setItem("submissions", JSON.stringify(submissions));
     if (window.AppData) {
@@ -221,17 +225,32 @@ function renderUserSubmissions() {
     if (!user) return;
 
     const submissions = getSubmissions().filter(s => s.userEmail === user.email);
+    const awards = getAwards().filter(a => a.userEmail === user.email);
     
     // Update Earned Stat on Dashboard
-    const earnedAmount = submissions
+    const taskEarnedAmount = submissions
         .filter(s => s.status === 'awarded')
         .reduce((sum, s) => sum + Number(s.reward), 0);
+    const manualAwardAmount = awards.reduce((sum, award) => sum + Number(award.amount || 0), 0);
+    const earnedAmount = taskEarnedAmount + manualAwardAmount;
+    const withdraws = JSON.parse(localStorage.getItem("withdrawals") || "[]")
+        .filter(w => w.userEmail === user.email && (w.status === 'approved' || w.status === 'pending'));
+    const withdrawn = withdraws.reduce((sum, w) => sum + Number(w.amount || 0), 0);
     
     const earnedStat = document.querySelector('.card h2:not([id])') || document.getElementById('earnedAmount');
-    if (earnedStat && earnedStat.parentElement.querySelector('h3').textContent === 'Earned') {
+    if (earnedStat) {
         earnedStat.textContent = `$${earnedAmount}`;
-        earnedStat.parentElement.querySelector('.stat-subtitle').textContent = `${submissions.filter(s => s.status === 'awarded').length} tasks paid`;
+        const subtitle = earnedStat.parentElement.querySelector('.stat-subtitle');
+        if (subtitle) subtitle.textContent = `${submissions.filter(s => s.status === 'awarded').length} tasks paid, ${awards.length} awards`;
     }
+
+    const balanceStat = document.getElementById("userBalance");
+    const completedStat = document.getElementById("completed");
+    const approvedStat = document.getElementById("approved");
+
+    if (balanceStat) balanceStat.textContent = `$${earnedAmount - withdrawn}`;
+    if (completedStat) completedStat.textContent = submissions.length;
+    if (approvedStat) approvedStat.textContent = submissions.filter(s => s.status === 'approved' || s.status === 'awarded').length;
     
     // Update stats on submission page
     const count = document.getElementById("submissionCount");
@@ -366,6 +385,6 @@ if (withdrawForm) {
 
 window.addEventListener("appdata:changed", (event) => {
     if (event.detail.collection === "tasks") renderTasks();
-    if (event.detail.collection === "submissions" || event.detail.collection === "withdrawals") renderUserSubmissions();
+    if (event.detail.collection === "submissions" || event.detail.collection === "withdrawals" || event.detail.collection === "awards") renderUserSubmissions();
 });
 }

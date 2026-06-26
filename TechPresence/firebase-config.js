@@ -33,6 +33,7 @@
         'tasks',
         'submissions',
         'withdrawals',
+        'awards',
         'activationPayments',
         'paymentMethods',
         'trainingSlots',

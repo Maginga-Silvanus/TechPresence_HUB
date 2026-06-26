@@ -92,23 +92,38 @@
 <script src="admin.js"></script>
 <script>
     // Specific logic for Approvals page tables
+    function escapeApprovalHtml(value) {
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
     function renderApprovalTables() {
         const users = JSON.parse(localStorage.getItem('users') || '[]');
         const pendingUsers = users.filter(u => u.activationPaid && !u.activated);
         const uTable = document.getElementById('pendingUsersTable');
         if(uTable) {
+            const paymentDetails = (u) => {
+                const payment = u.activationPayment || {};
+                return `
+                    ${escapeApprovalHtml(payment.method || 'M-Pesa')}
+                    ${payment.tillNumber ? 'Till ' + escapeApprovalHtml(payment.tillNumber) : 'Till 5360600'}<br>
+                    ${payment.transactionCode ? 'Code: ' + escapeApprovalHtml(payment.transactionCode) : 'No transaction code'}<br>
+                    ${payment.confirmationMessage ? '<span style="display:block; margin-top:4px; color:#374151;">' + escapeApprovalHtml(payment.confirmationMessage) + '</span>' : ''}
+                `;
+            };
+
             uTable.innerHTML = pendingUsers.map(u => `
                 <tr>
-                    <td><strong>${u.name}</strong><br><small>${u.email}</small></td>
+                    <td><strong>${escapeApprovalHtml(u.name)}</strong><br><small>${escapeApprovalHtml(u.email)}</small></td>
                     <td>
                         <span style="color: #10b981;">PAID</span><br>
-                        <small>
-                            ${u.activationPayment && u.activationPayment.method ? u.activationPayment.method : 'M-Pesa'}
-                            ${u.activationPayment && u.activationPayment.tillNumber ? 'Till ' + u.activationPayment.tillNumber : 'Till 5360600'}<br>
-                            ${u.activationPayment && u.activationPayment.transactionCode ? 'Code: ' + u.activationPayment.transactionCode : 'No transaction code'}
-                        </small>
+                        <small>${paymentDetails(u)}</small>
                     </td>
-                    <td><button class="activate" data-email="${u.email}" style="background:#2196F3; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Activate</button></td>
+                    <td><button class="activate" data-email="${escapeApprovalHtml(u.email)}" style="background:#2196F3; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Activate</button></td>
                 </tr>
             `).join('') || '<tr><td colspan="3">No users waiting for activation.</td></tr>';
         }

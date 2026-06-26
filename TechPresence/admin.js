@@ -10,6 +10,11 @@ const taskDescription = document.getElementById("taskDescription");
 const taskSubmitBtn = document.getElementById("taskSubmitBtn");
 const tasksStat = document.getElementById("tasks");
 const usersStat = document.getElementById("users");
+const awardForm = document.getElementById("awardForm");
+const awardUser = document.getElementById("awardUser");
+const awardAmount = document.getElementById("awardAmount");
+const awardReason = document.getElementById("awardReason");
+const awardsTable = document.getElementById("awardsTable");
 let editingTaskId = null;
 
 // Sidebar Collapse Functionality
@@ -86,6 +91,17 @@ function saveSubmissions(submissions){
     }
 }
 
+function getAwards(){
+    return JSON.parse(localStorage.getItem("awards") || "[]");
+}
+
+function saveAwards(awards){
+    localStorage.setItem("awards", JSON.stringify(awards));
+    if (window.AppData) {
+        window.AppData.saveCollection("awards", awards).catch(console.error);
+    }
+}
+
 function escapeHtml(value){
     return String(value)
         .replaceAll("&", "&amp;")
@@ -141,6 +157,89 @@ function renderUsers(){
         </tr>
     `;
     }).join("");
+}
+
+function formatMoney(amount){
+    return `$${Number(amount || 0).toLocaleString()}`;
+}
+
+function renderAwardUsers(){
+    if (!awardUser) return;
+
+    const selectedValue = awardUser.value;
+    const users = getUsers().filter(user => (user.role || "user") === "user");
+
+    awardUser.innerHTML = '<option value="">Select user</option>' + users.map(user => `
+        <option value="${escapeHtml(user.email)}">${escapeHtml(user.name || "User")} (${escapeHtml(user.email)})</option>
+    `).join("");
+    awardUser.value = selectedValue;
+}
+
+function renderAwards(){
+    const awards = getAwards().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    const totalAwarded = awards.reduce((sum, award) => sum + Number(award.amount || 0), 0);
+    const totalAwardedStat = document.getElementById("totalAwardedStat");
+
+    if (totalAwardedStat) totalAwardedStat.textContent = formatMoney(totalAwarded);
+    if (!awardsTable) return;
+
+    if (awards.length === 0) {
+        awardsTable.innerHTML = '<tr><td colspan="4">No awards have been added yet.</td></tr>';
+        return;
+    }
+
+    awardsTable.innerHTML = awards.slice(0, 10).map(award => `
+        <tr>
+            <td><strong>${escapeHtml(award.userName || "User")}</strong><br><small>${escapeHtml(award.userEmail)}</small></td>
+            <td>${formatMoney(award.amount)}</td>
+            <td>${escapeHtml(award.reason || "Award")}</td>
+            <td><small>${escapeHtml(award.createdAt || "")}</small></td>
+        </tr>
+    `).join("");
+}
+
+function addAward(userEmail, amount, reason, sourceSubmissionId = ""){
+    const users = getUsers();
+    const user = users.find(item => item.email === userEmail);
+
+    if (!user) {
+        alert("Please select a valid user.");
+        return null;
+    }
+
+    const award = {
+        id: Date.now().toString(),
+        userEmail: user.email,
+        userName: user.name || user.email,
+        amount: Number(amount),
+        reason,
+        sourceSubmissionId,
+        status: "awarded",
+        createdAt: new Date().toISOString()
+    };
+
+    const awards = getAwards();
+    awards.push(award);
+    saveAwards(awards);
+    renderAwards();
+    return award;
+}
+
+function activateUserByEmail(email){
+    const users = getUsers();
+    const user = users.find(item => item.email === email);
+
+    if (!user) return;
+
+    user.activated = true;
+    saveUsers(users);
+    if (window.syncFirebaseUser) {
+        window.syncFirebaseUser(user).catch(console.error);
+    }
+    renderUsers();
+    renderCharts();
+    renderApprovalCharts();
+    if (typeof renderApprovalTables === "function") renderApprovalTables();
 }
 
 function renderTasks(){
@@ -269,6 +368,30 @@ window.updateSubmissionStatus = function(id, status) {
     }
 };
 
+window.awardUser = function(id) {
+    const submissions = getSubmissions();
+    const sub = submissions.find(s => s.id === id);
+
+    if (!sub) return;
+
+    const amount = Number(sub.reward || 0);
+    if (amount <= 0) {
+        alert("This submission does not have a valid reward amount.");
+        return;
+    }
+
+    const award = addAward(sub.userEmail, amount, `Task award: ${sub.title}`, sub.id);
+    if (!award) return;
+
+    sub.status = "awarded";
+    sub.awardId = award.id;
+    saveSubmissions(submissions);
+    renderSubmissions();
+    renderAwards();
+    if (typeof renderAwardsPage === "function") renderAwardsPage();
+    alert(`Awarded ${formatMoney(amount)} to ${sub.userName}.`);
+};
+
 function resetTaskForm(){
     editingTaskId = null;
     taskForm.reset();
@@ -292,19 +415,18 @@ if (usersTable) {
 
         if (!button) return;
 
-        const users = getUsers();
-        const user = users.find(item => item.email === button.dataset.email);
-
-        if (!user) return;
-
-        user.activated = true;
-        saveUsers(users);
-        if (window.syncFirebaseUser) {
-            window.syncFirebaseUser(user).catch(console.error);
-        }
-        renderUsers();
+        activateUserByEmail(button.dataset.email);
     });
 }
+
+document.addEventListener("click", (event) => {
+    const button = event.target.closest(".activate");
+
+    if (!button || !button.dataset.email) return;
+    if (usersTable && usersTable.contains(button)) return;
+
+    activateUserByEmail(button.dataset.email);
+});
 
 if (taskForm) {
     taskForm.addEventListener("submit", (event) => {
@@ -395,6 +517,28 @@ if (applicationsTable) {
         application.status = "approved";
         saveApplications(applications);
         renderApplications();
+    });
+}
+
+if (awardForm) {
+    awardForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const email = awardUser.value;
+        const amount = Number(awardAmount.value);
+        const reason = awardReason.value.trim();
+
+        if (!email || amount <= 0 || !reason) {
+            alert("Please select a user, enter an amount, and add a reason.");
+            return;
+        }
+
+        const award = addAward(email, amount, reason);
+        if (!award) return;
+
+        awardForm.reset();
+        renderAwards();
+        alert(`Awarded ${formatMoney(amount)} to ${award.userName}.`);
     });
 }
 
@@ -562,6 +706,8 @@ function renderApprovalCharts() {
 }
 
 renderUsers();
+renderAwardUsers();
+renderAwards();
 renderApplications();
 renderTasks();
 renderCharts();
@@ -640,6 +786,7 @@ window.addEventListener("appdata:changed", (event) => {
     const collection = event.detail.collection;
     if (collection === "users") {
         renderUsers();
+        renderAwardUsers();
         renderCharts();
         renderApprovalCharts();
     }
@@ -654,6 +801,7 @@ window.addEventListener("appdata:changed", (event) => {
         renderAdminWithdrawals();
         renderWithdrawalCharts();
     }
+    if (collection === "awards") renderAwards();
 });
 renderAdminWithdrawals();
 renderWithdrawalCharts();

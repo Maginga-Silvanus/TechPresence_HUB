@@ -70,6 +70,7 @@
             name: user.name,
             activated: !!user.activated,
             activationPaid: !!user.activationPaid,
+            activationPayment: user.activationPayment || null,
             phone: user.phone || '',
             profilePic: user.profilePic || '',
             role: user.role || 'user'
@@ -167,6 +168,10 @@
         return JSON.parse(localStorage.getItem('submissions')||'[]');
     }
 
+    function getAwards(){
+        return JSON.parse(localStorage.getItem('awards')||'[]');
+    }
+
     function getWithdrawals(){
         return JSON.parse(localStorage.getItem('withdrawals')||'[]');
     }
@@ -206,6 +211,7 @@
             name: savedUser.name,
             activated: !!savedUser.activated,
             activationPaid: !!savedUser.activationPaid,
+            activationPayment: savedUser.activationPayment || user.activationPayment || null,
             phone: savedUser.phone || '',
             profilePic: savedUser.profilePic || '',
             role: 'user'
@@ -350,62 +356,64 @@
         if (!banner) return;
 
         banner.innerHTML = '';
+        banner.style.background = '#ffffff';
+        banner.style.border = '1px solid #d1d5db';
+        banner.style.borderRadius = '8px';
+        banner.style.padding = '16px';
 
-        const message = document.createElement('span');
         const settings = getAdminSettings();
-        message.textContent = `For your account to be activated, pay the activation fee of KES ${settings.activationFee} to M-Pesa Till ${MPESA_TILL_NUMBER}. `;
 
-        const payButton = document.createElement('button');
-        payButton.type = 'button';
-        payButton.setAttribute('data-pay-activation', '');
-        payButton.textContent = 'Confirm M-Pesa Payment';
-        payButton.style.marginLeft = '10px';
-        payButton.style.background = '#2563eb';
-        payButton.style.color = 'white';
-        payButton.style.border = 'none';
-        payButton.style.padding = '8px 12px';
-        payButton.style.borderRadius = '6px';
-        payButton.style.cursor = 'pointer';
-
-        banner.appendChild(message);
-        banner.appendChild(payButton);
+        banner.innerHTML = `
+            <div style="display:grid; gap:12px;">
+                <div>
+                    <strong style="display:block; color:#111827; margin-bottom:6px;">Activate your account</strong>
+                    <span style="color:#4b5563;">Pay the activation fee, then paste your M-Pesa confirmation message below for admin review.</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px;">
+                    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:10px;">
+                        <small style="display:block; color:#6b7280; font-weight:600;">Amount</small>
+                        <strong>KES ${settings.activationFee}</strong>
+                    </div>
+                    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:10px;">
+                        <small style="display:block; color:#6b7280; font-weight:600;">M-Pesa Till</small>
+                        <strong>${MPESA_TILL_NUMBER}</strong>
+                    </div>
+                    <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:10px;">
+                        <small style="display:block; color:#6b7280; font-weight:600;">Menu</small>
+                        <strong>Buy Goods</strong>
+                    </div>
+                </div>
+                <ol style="margin:0 0 0 18px; padding:0; color:#374151; line-height:1.6;">
+                    <li>Open M-Pesa.</li>
+                    <li>Select Lipa na M-Pesa, then Buy Goods and Services.</li>
+                    <li>Enter Till ${MPESA_TILL_NUMBER} and pay KES ${settings.activationFee}.</li>
+                    <li>Paste the confirmation SMS below.</li>
+                </ol>
+                <label for="mpesaPhone" style="font-weight:600; color:#111827;">Phone number used</label>
+                <input id="mpesaPhone" type="tel" placeholder="e.g. 07XXXXXXXX" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;">
+                <label for="mpesaMessage" style="font-weight:600; color:#111827;">M-Pesa confirmation message</label>
+                <textarea id="mpesaMessage" rows="4" placeholder="Paste the full M-Pesa confirmation message here" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px; resize:vertical;"></textarea>
+                <button type="button" data-pay-activation style="justify-self:start; background:#2563eb; color:white; border:none; padding:10px 14px; border-radius:6px; cursor:pointer; font-weight:600;">
+                    Submit Payment Confirmation
+                </button>
+            </div>
+        `;
     }
 
     function payActivationFee(){
         const settings = getAdminSettings();
-        const instructions = [
-            `Pay KES ${settings.activationFee} to M-Pesa Till ${MPESA_TILL_NUMBER}.`,
-            'Use Buy Goods and Services.',
-            'After payment, enter the phone number used below.'
-        ].join('\n');
-        const phone = prompt(instructions);
-
-        if (phone === null) return;
-
-        const cleanPhone = phone.trim();
+        const phoneInput = document.getElementById('mpesaPhone');
+        const messageInput = document.getElementById('mpesaMessage');
+        const cleanPhone = phoneInput ? phoneInput.value.trim() : '';
+        const confirmationMessage = messageInput ? messageInput.value.trim() : '';
 
         if (!cleanPhone) {
             alert('Please enter your phone number.');
             return;
         }
 
-        const amount = prompt(`Confirm the amount sent to Till ${MPESA_TILL_NUMBER}`, settings.activationFee);
-
-        if (amount === null) return;
-
-        if (amount.trim() !== String(settings.activationFee)) {
-            alert(`Activation fee must be KES ${settings.activationFee}.`);
-            return;
-        }
-
-        const transactionCode = prompt('Enter the M-Pesa transaction code from your confirmation SMS');
-
-        if (transactionCode === null) return;
-
-        const cleanTransactionCode = transactionCode.trim().toUpperCase();
-
-        if (!cleanTransactionCode) {
-            alert('Please enter the M-Pesa transaction code.');
+        if (!confirmationMessage) {
+            alert('Please paste your M-Pesa confirmation message.');
             return;
         }
 
@@ -414,24 +422,30 @@
         if (user.role === 'admin') return alert('Admin account is already active');
 
         const users = getUsers();
-        const savedUser = users.find(item=>item.email===user.email);
+        let savedUser = users.find(item=>item.email===user.email);
+        const transactionMatch = confirmationMessage.match(/\b[A-Z0-9]{10}\b/);
+        const cleanTransactionCode = transactionMatch ? transactionMatch[0].toUpperCase() : '';
         const paymentInfo = {
             method: 'M-Pesa',
             tillNumber: MPESA_TILL_NUMBER,
             phone: cleanPhone,
             amount: Number(settings.activationFee),
             transactionCode: cleanTransactionCode,
+            confirmationMessage,
             status: 'pending',
             submittedAt: new Date().toISOString()
         };
 
-        if (savedUser) {
-            savedUser.activationPaid = true;
-            savedUser.phone = cleanPhone;
-            savedUser.activationPayment = paymentInfo;
-            saveUsers(users);
-            saveFirebaseUser(savedUser).catch(console.error);
+        if (!savedUser) {
+            savedUser = { ...user, role: user.role || 'user' };
+            users.push(savedUser);
         }
+
+        savedUser.activationPaid = true;
+        savedUser.phone = cleanPhone;
+        savedUser.activationPayment = paymentInfo;
+        saveUsers(users);
+        saveFirebaseUser(savedUser).catch(console.error);
 
         if (window.AppData) {
             window.AppData.upsertItem('activationPayments', {
@@ -442,6 +456,7 @@
                 method: 'M-Pesa',
                 tillNumber: MPESA_TILL_NUMBER,
                 transactionCode: cleanTransactionCode,
+                confirmationMessage,
                 amount: Number(settings.activationFee),
                 status: 'pending',
                 createdAt: new Date().toISOString()
@@ -662,10 +677,12 @@
 
             const application = getApplications().find(item=>item.email===user.email);
             const userSubmissions = getSubmissions().filter(item=>item.userEmail===user.email);
+            const userAwards = getAwards().filter(item=>item.userEmail===user.email);
             const approvedSubmissions = userSubmissions.filter(item=>item.status === 'approved' || item.status === 'awarded');
             const earned = userSubmissions
                 .filter(item=>item.status === 'awarded')
-                .reduce((sum, item)=>sum + Number(item.reward || 0), 0);
+                .reduce((sum, item)=>sum + Number(item.reward || 0), 0)
+                + userAwards.reduce((sum, item)=>sum + Number(item.amount || 0), 0);
             const withdrawn = getWithdrawals()
                 .filter(item=>item.userEmail===user.email && (item.status === 'approved' || item.status === 'pending'))
                 .reduce((sum, item)=>sum + Number(item.amount || 0), 0);

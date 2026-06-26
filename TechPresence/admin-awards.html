@@ -89,8 +89,14 @@
 <script>
     function renderAwardsPage() {
         const subs = JSON.parse(localStorage.getItem('submissions') || '[]');
+        const awards = JSON.parse(localStorage.getItem('awards') || '[]');
         const pending = subs.filter(s => s.status === 'approved');
-        const paid = subs.filter(s => s.status === 'awarded');
+        const totalAwarded = awards.reduce((sum, award) => sum + Number(award.amount || 0), 0);
+        const paidUsers = new Set(awards.map(award => award.userEmail)).size;
+
+        document.getElementById('summaryTotalAwarded').textContent = `$${totalAwarded.toLocaleString()}`;
+        document.getElementById('summaryPendingAward').textContent = `$${pending.reduce((sum, sub) => sum + Number(sub.reward || 0), 0).toLocaleString()}`;
+        document.getElementById('summaryPaidUsers').textContent = paidUsers;
 
         document.getElementById('pendingAwardsTable').innerHTML = pending.map(s => `
             <tr>
@@ -101,17 +107,20 @@
             </tr>
         `).join('') || '<tr><td colspan="4">No approved tasks waiting for award.</td></tr>';
 
-        document.getElementById('paidAwardsTable').innerHTML = paid.map(s => `
+        document.getElementById('paidAwardsTable').innerHTML = awards.slice().reverse().map(award => `
             <tr>
-                <td>${s.userName}</td>
-                <td>${s.title}</td>
-                <td>$${s.reward}</td>
+                <td>${award.userName}</td>
+                <td>${award.reason || 'Award'}</td>
+                <td>$${Number(award.amount || 0).toLocaleString()}</td>
                 <td><span style="color: #10b981; font-weight: 600;">PAID</span></td>
             </tr>
         `).join('') || '<tr><td colspan="4">No history of awarded tasks.</td></tr>';
     }
 
     renderAwardsPage();
+    window.addEventListener('appdata:changed', (event) => {
+        if (event.detail.collection === 'submissions' || event.detail.collection === 'awards') renderAwardsPage();
+    });
 </script>
 </body>
 </html>

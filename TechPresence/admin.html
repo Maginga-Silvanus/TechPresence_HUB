@@ -90,6 +90,45 @@
     .stat-item.inactive .stat-item-value {
         color: #ef4444;
     }
+
+    .award-form {
+        display: grid;
+        grid-template-columns: minmax(180px, 2fr) minmax(120px, 1fr) minmax(200px, 2fr) auto;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 20px;
+    }
+
+    .award-form label {
+        display: grid;
+        gap: 6px;
+        color: #374151;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .award-form select,
+    .award-form input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font: inherit;
+    }
+
+    .award-form button {
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 11px 14px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+        .award-form { grid-template-columns: 1fr; }
+    }
 </style>
 </head>
 <body>
@@ -154,6 +193,38 @@
                 <h4>Total Withdrawn</h4>
                 <h2 id="adminTotalWithdrawn">$0</h2>
             </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Award User Money</h2>
+            <form id="awardForm" class="award-form">
+                <label>
+                    User
+                    <select id="awardUser" required>
+                        <option value="">Select user</option>
+                    </select>
+                </label>
+                <label>
+                    Amount
+                    <input id="awardAmount" type="number" min="1" step="1" placeholder="Amount" required>
+                </label>
+                <label>
+                    Reason
+                    <input id="awardReason" type="text" placeholder="e.g. Task bonus or manual award" required>
+                </label>
+                <button type="submit">Award Money</button>
+            </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Reason</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="awardsTable"></tbody>
+            </table>
         </div>
         <!-- User Activation Chart -->
         <div class="chart-section">
