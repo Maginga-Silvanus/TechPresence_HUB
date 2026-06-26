@@ -17,9 +17,6 @@
 
     function saveUsers(users){
         localStorage.setItem('users', JSON.stringify(users));
-        if (window.AppData) {
-            window.AppData.saveCollection('users', users).catch(console.error);
-        }
     }
 
     function getFirebase(){

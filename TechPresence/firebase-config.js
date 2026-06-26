@@ -106,9 +106,17 @@
     }
 
     function watchCollection(name) {
-        return window.AppFirebase.db.collection(name).onSnapshot(snapshot => {
-            storeCollection(name, snapshot.docs.map(normalizeDocument));
-        }, error => console.error(`Unable to sync ${name}`, error));
+        let unsubscribe = null;
+
+        waitForAuthReady().then(() => {
+            unsubscribe = window.AppFirebase.db.collection(name).onSnapshot(snapshot => {
+                storeCollection(name, snapshot.docs.map(normalizeDocument));
+            }, error => console.error(`Unable to sync ${name}`, error));
+        });
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }
 
     window.AppData = {
@@ -168,6 +176,28 @@
                 ...savedItem,
                 updatedAt: window.AppFirebase.serverTimestamp(),
                 createdAt: savedItem.createdAt || window.AppFirebase.serverTimestamp()
+            }, { merge: true });
+        },
+        async updateItem(name, id, updates) {
+            const normalizedId = String(id || '').toLowerCase();
+            if (!normalizedId) return;
+
+            const items = this.getCollection(name);
+            const index = items.findIndex(existing => documentIdFor(name, existing) === normalizedId);
+            const updatedItem = {
+                ...(index >= 0 ? items[index] : {}),
+                ...updates,
+                id: normalizedId
+            };
+
+            if (index >= 0) items[index] = updatedItem;
+            else items.push(updatedItem);
+
+            storeCollection(name, items);
+            await window.AppFirebase.db.collection(name).doc(normalizedId).set({
+                ...updates,
+                id: normalizedId,
+                updatedAt: window.AppFirebase.serverTimestamp()
             }, { merge: true });
         },
         async deleteItem(name, id) {

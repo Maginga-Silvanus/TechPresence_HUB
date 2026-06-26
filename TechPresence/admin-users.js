@@ -30,9 +30,36 @@ function getUsers() {
 
 function saveUsers(users) {
     localStorage.setItem("users", JSON.stringify(users));
-    if (window.AppData) {
-        window.AppData.saveCollection("users", users).catch(console.error);
+}
+
+function cacheUser(user) {
+    const users = getUsers();
+    const email = (user.email || user.id || "").toLowerCase();
+    const index = users.findIndex(item => (item.email || item.id || "").toLowerCase() === email);
+    const cachedUser = { ...user, email };
+
+    if (index >= 0) users[index] = { ...users[index], ...cachedUser };
+    else users.push(cachedUser);
+
+    localStorage.setItem("users", JSON.stringify(users));
+    return cachedUser;
+}
+
+async function updateFirestoreUser(email, updates) {
+    const normalizedEmail = (email || "").toLowerCase();
+    if (!normalizedEmail) return null;
+
+    if (window.AppData && window.AppData.updateItem) {
+        await window.AppData.updateItem("users", normalizedEmail, { ...updates, email: normalizedEmail });
+    } else if (window.AppFirebase && window.AppFirebase.isConfigured) {
+        await window.AppFirebase.db.collection("users").doc(normalizedEmail).set({
+            ...updates,
+            email: normalizedEmail,
+            updatedAt: window.AppFirebase.serverTimestamp()
+        }, { merge: true });
     }
+
+    return cacheUser({ ...updates, email: normalizedEmail });
 }
 
 async function fetchUsersFromFirestore() {
@@ -278,17 +305,25 @@ document.addEventListener("click", (e) => {
 
     const email = btn.dataset.email;
     const users = getUsers();
-    const user = users.find(u => u.email === email);
+    const user = users.find(u => (u.email || "").toLowerCase() === email.toLowerCase());
 
     if (!user) return;
 
-    user.activated = true;
-    saveUsers(users);
-    if (window.syncFirebaseUser) {
-        window.syncFirebaseUser(user).catch(console.error);
-    }
-    renderCharts();
-    renderUsers();
+    btn.disabled = true;
+
+    updateFirestoreUser(email, {
+        ...user,
+        activated: true,
+        activationStatus: "activated",
+        activatedAt: new Date().toISOString()
+    }).then(() => fetchUsersFromFirestore()).then(() => {
+        renderCharts();
+        renderUsers();
+    }).catch(error => {
+        console.error("Unable to activate user in Firestore", error);
+        alert("Unable to activate this user in Firestore. Please check Firestore rules and admin sign-in.");
+        btn.disabled = false;
+    });
 });
 
 // Logout functionality
