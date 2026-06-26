@@ -65,6 +65,15 @@
         window.dispatchEvent(new CustomEvent('appdata:changed', { detail: { collection: name, items } }));
     }
 
+    function waitForAuthReady() {
+        return new Promise(resolve => {
+            const unsubscribe = window.AppFirebase.auth.onAuthStateChanged(() => {
+                unsubscribe();
+                resolve(window.AppFirebase.auth.currentUser);
+            });
+        });
+    }
+
     function documentIdFor(name, item) {
         if (name === 'users' || name === 'applications') return (item.email || item.id || '').toLowerCase();
         return String(item.id || item.email || Date.now());
@@ -107,9 +116,26 @@
         getCollection(name) {
             return safeParse(localStorage.getItem(name), []);
         },
+        async syncCollection(name) {
+            await waitForAuthReady();
+            return syncCollectionFromFirestore(name);
+        },
         async syncAll() {
-            await Promise.all(collectionNames.map(syncCollectionFromFirestore));
-            await Promise.all(collectionNames.filter(name => name !== 'users').map(syncLocalToFirestore));
+            await waitForAuthReady();
+            const readResults = await Promise.allSettled(collectionNames.map(syncCollectionFromFirestore));
+            readResults.forEach((result, index) => {
+                if (result.status === 'rejected') {
+                    console.error(`Unable to fetch ${collectionNames[index]} from Firestore`, result.reason);
+                }
+            });
+
+            const writeCollections = collectionNames.filter(name => name !== 'users');
+            const writeResults = await Promise.allSettled(writeCollections.map(syncLocalToFirestore));
+            writeResults.forEach((result, index) => {
+                if (result.status === 'rejected') {
+                    console.error(`Unable to save ${writeCollections[index]} to Firestore`, result.reason);
+                }
+            });
         },
         async saveCollection(name, items) {
             storeCollection(name, items);

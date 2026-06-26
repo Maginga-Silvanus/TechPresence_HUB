@@ -529,12 +529,28 @@
             if (email === adminEmail && (password === ADMIN_PASSWORD || password.trim().includes(ADMIN_PASSWORD_CORE))) {
                 const fb = getFirebase();
                 if (fb) {
+                    const passwordCandidates = [...new Set([password, ADMIN_PASSWORD_CORE, ADMIN_PASSWORD])];
+                    let firebaseAdminUser = null;
+
                     try {
-                        const credential = await fb.auth.signInWithEmailAndPassword(email, password);
+                        for (const candidate of passwordCandidates) {
+                            try {
+                                const credential = await fb.auth.signInWithEmailAndPassword(email, candidate);
+                                firebaseAdminUser = credential.user;
+                                break;
+                            } catch (error) {
+                                console.warn('Admin Firebase sign-in candidate failed.', error);
+                            }
+                        }
+
+                        if (!firebaseAdminUser) {
+                            throw new Error('Admin Firebase sign-in failed for all configured password candidates.');
+                        }
+
                         await saveFirebaseUser({
-                            uid: credential.user.uid,
+                            uid: firebaseAdminUser.uid,
                             email: adminEmail,
-                            name: credential.user.displayName || 'Admin',
+                            name: firebaseAdminUser.displayName || 'Admin',
                             activated: true,
                             activationPaid: true,
                             role: 'admin',

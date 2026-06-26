@@ -58,6 +58,27 @@ function saveUsers(users){
     }
 }
 
+async function fetchUsersFromFirestore(){
+    if (!window.AppData || !window.AppData.syncCollection) return;
+
+    try {
+        await window.AppData.syncCollection("users");
+        renderUsers();
+        renderAwardUsers();
+        renderCharts();
+        renderApprovalCharts();
+    } catch (error) {
+        console.error("Unable to fetch users from Firestore", error);
+        if (usersTable && getUsers().length === 0) {
+            usersTable.innerHTML = `
+                <tr>
+                    <td colspan="5">Unable to fetch Firestore users. Confirm the admin is signed in with Firebase and Firestore rules allow reading users.</td>
+                </tr>
+            `;
+        }
+    }
+}
+
 function getApplications(){
     return JSON.parse(localStorage.getItem("applications") || "[]");
 }
@@ -805,3 +826,4 @@ window.addEventListener("appdata:changed", (event) => {
 });
 renderAdminWithdrawals();
 renderWithdrawalCharts();
+fetchUsersFromFirestore();

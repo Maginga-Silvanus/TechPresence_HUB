@@ -35,6 +35,30 @@ function saveUsers(users) {
     }
 }
 
+async function fetchUsersFromFirestore() {
+    if (!window.AppData || !window.AppData.syncCollection) return;
+
+    try {
+        await window.AppData.syncCollection("users");
+        renderCharts();
+        renderUsers();
+    } catch (error) {
+        console.error("Unable to fetch users from Firestore", error);
+        const tbody = document.getElementById("usersTableBody");
+        if (tbody && getUsers().length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <h3>Unable to fetch Firestore users</h3>
+                        <p>Confirm the admin is signed in with Firebase and Firestore rules allow reading users.</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
 function escapeHtml(text) {
     const map = {
         "&": "&amp;",
@@ -277,6 +301,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", () => {
     renderCharts();
     renderUsers();
+    fetchUsersFromFirestore();
 });
 
 window.addEventListener("appdata:changed", (event) => {
