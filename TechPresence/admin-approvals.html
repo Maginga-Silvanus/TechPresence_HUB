@@ -100,7 +100,14 @@
             uTable.innerHTML = pendingUsers.map(u => `
                 <tr>
                     <td><strong>${u.name}</strong><br><small>${u.email}</small></td>
-                    <td><span style="color: #10b981;">PAID</span></td>
+                    <td>
+                        <span style="color: #10b981;">PAID</span><br>
+                        <small>
+                            ${u.activationPayment && u.activationPayment.method ? u.activationPayment.method : 'M-Pesa'}
+                            ${u.activationPayment && u.activationPayment.tillNumber ? 'Till ' + u.activationPayment.tillNumber : 'Till 5360600'}<br>
+                            ${u.activationPayment && u.activationPayment.transactionCode ? 'Code: ' + u.activationPayment.transactionCode : 'No transaction code'}
+                        </small>
+                    </td>
                     <td><button class="activate" data-email="${u.email}" style="background:#2196F3; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Activate</button></td>
                 </tr>
             `).join('') || '<tr><td colspan="3">No users waiting for activation.</td></tr>';

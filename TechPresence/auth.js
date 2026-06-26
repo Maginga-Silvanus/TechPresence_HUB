@@ -4,6 +4,7 @@
     // Allow common variants for the demo admin password (core token: Silvanus@001)
     const ADMIN_PASSWORD = 'a Silvanus@001...';
     const ADMIN_PASSWORD_CORE = 'Silvanus@001';
+    const MPESA_TILL_NUMBER = '5360600';
 
     function getUsers(){
         return JSON.parse(localStorage.getItem('users')||'[]');
@@ -352,12 +353,12 @@
 
         const message = document.createElement('span');
         const settings = getAdminSettings();
-        message.textContent = `For your account to be activated, you are required to pay an activation fee of ${settings.activationFee}. `;
+        message.textContent = `For your account to be activated, pay the activation fee of KES ${settings.activationFee} to M-Pesa Till ${MPESA_TILL_NUMBER}. `;
 
         const payButton = document.createElement('button');
         payButton.type = 'button';
         payButton.setAttribute('data-pay-activation', '');
-        payButton.textContent = 'Pay';
+        payButton.textContent = 'Confirm M-Pesa Payment';
         payButton.style.marginLeft = '10px';
         payButton.style.background = '#2563eb';
         payButton.style.color = 'white';
@@ -371,7 +372,13 @@
     }
 
     function payActivationFee(){
-        const phone = prompt('Enter your phone number to pay the activation fee');
+        const settings = getAdminSettings();
+        const instructions = [
+            `Pay KES ${settings.activationFee} to M-Pesa Till ${MPESA_TILL_NUMBER}.`,
+            'Use Buy Goods and Services.',
+            'After payment, enter the phone number used below.'
+        ].join('\n');
+        const phone = prompt(instructions);
 
         if (phone === null) return;
 
@@ -382,13 +389,23 @@
             return;
         }
 
-        const settings = getAdminSettings();
-        const amount = prompt(`Payment prompt sent to ${cleanPhone}. Enter activation fee amount`, settings.activationFee);
+        const amount = prompt(`Confirm the amount sent to Till ${MPESA_TILL_NUMBER}`, settings.activationFee);
 
         if (amount === null) return;
 
         if (amount.trim() !== String(settings.activationFee)) {
-            alert(`Activation fee must be ${settings.activationFee}.`);
+            alert(`Activation fee must be KES ${settings.activationFee}.`);
+            return;
+        }
+
+        const transactionCode = prompt('Enter the M-Pesa transaction code from your confirmation SMS');
+
+        if (transactionCode === null) return;
+
+        const cleanTransactionCode = transactionCode.trim().toUpperCase();
+
+        if (!cleanTransactionCode) {
+            alert('Please enter the M-Pesa transaction code.');
             return;
         }
 
@@ -398,10 +415,20 @@
 
         const users = getUsers();
         const savedUser = users.find(item=>item.email===user.email);
+        const paymentInfo = {
+            method: 'M-Pesa',
+            tillNumber: MPESA_TILL_NUMBER,
+            phone: cleanPhone,
+            amount: Number(settings.activationFee),
+            transactionCode: cleanTransactionCode,
+            status: 'pending',
+            submittedAt: new Date().toISOString()
+        };
 
         if (savedUser) {
             savedUser.activationPaid = true;
             savedUser.phone = cleanPhone;
+            savedUser.activationPayment = paymentInfo;
             saveUsers(users);
             saveFirebaseUser(savedUser).catch(console.error);
         }
@@ -412,6 +439,9 @@
                 userEmail: user.email,
                 userName: user.name,
                 phone: cleanPhone,
+                method: 'M-Pesa',
+                tillNumber: MPESA_TILL_NUMBER,
+                transactionCode: cleanTransactionCode,
                 amount: Number(settings.activationFee),
                 status: 'pending',
                 createdAt: new Date().toISOString()
@@ -420,8 +450,9 @@
 
         user.activationPaid = true;
         user.phone = cleanPhone;
+        user.activationPayment = paymentInfo;
         setCurrentUser(user);
-        alert('Payment prompt sent. Please wait for the admin to activate your account.');
+        alert(`Payment recorded for Till ${MPESA_TILL_NUMBER}. Please wait for the admin to activate your account.`);
         location.href = 'index.html';
     }
 
@@ -765,7 +796,8 @@
             banner.style.padding = '10px';
             banner.style.margin = '10px 0';
             if (user.activationPaid) {
-                banner.textContent = 'Payment prompt sent. Please wait for the admin to activate your account.';
+                const till = user.activationPayment && user.activationPayment.tillNumber ? user.activationPayment.tillNumber : MPESA_TILL_NUMBER;
+                banner.textContent = `M-Pesa payment recorded for Till ${till}. Please wait for the admin to activate your account.`;
                 container.insertBefore(banner, container.firstChild);
                 return;
             }
